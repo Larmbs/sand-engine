@@ -113,16 +113,16 @@ async fn main() {
 fn draw_chunk_mesh(chunk_mesh: &ChunkMesh, world_x: f32, world_y: f32, scale: f32, debug: bool) {
     for (block, rect) in chunk_mesh.mesh.iter() {
         draw_rectangle(
-            (world_x + rect.x) * scale + window::screen_width() / 2.,
-            (world_y + rect.y) * scale + window::screen_height() / 2.,
+            (world_x + rect.x) * scale,
+            (world_y + rect.y) * scale,
             rect.w * scale,
             rect.h * scale,
             block.get_color(),
         );
         if debug {
             draw_rectangle_lines(
-                (world_x + rect.x) * scale + window::screen_width() / 2.,
-                (world_y + rect.y) * scale + window::screen_height() / 2.,
+                (world_x + rect.x) * scale,
+                (world_y + rect.y) * scale,
                 rect.w * scale,
                 rect.h * scale,
                 2.,
@@ -132,8 +132,8 @@ fn draw_chunk_mesh(chunk_mesh: &ChunkMesh, world_x: f32, world_y: f32, scale: f3
     }
     if debug {
         draw_rectangle_lines(
-            world_x * scale + window::screen_width() / 2.,
-            world_y * scale + window::screen_height() / 2.,
+            world_x * scale,
+            world_y * scale,
             16. * scale,
             16. * scale,
             2.,
