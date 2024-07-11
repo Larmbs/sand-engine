@@ -6,10 +6,7 @@ use std::fs;
 use std::io;
 use std::path::PathBuf;
 
-pub struct World {
-    
-}
-
+pub struct World {}
 
 #[derive(Serialize, Deserialize, Clone, PartialEq, Eq)]
 #[repr(u8)]
@@ -66,6 +63,7 @@ impl Region {
 #[derive(Serialize, Deserialize)]
 /// Chunks stores 16x16 blocks
 pub struct Chunk {
+    pub active: bool,
     pub blocks: Vec<Block>,
 }
 
@@ -126,7 +124,10 @@ pub fn generate_chunk(seed: u32, region_x: i32, region_y: i32, chunk_x: u8, chun
             blocks.push(Block::AIR)
         }
     }
-    Chunk { blocks }
+    Chunk {
+        active: false,
+        blocks,
+    }
 }
 
 pub fn world_to_chunk_pos(world_x: u64, world_y: u64) -> u8 {

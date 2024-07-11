@@ -13,20 +13,16 @@ struct WorldWindow {
     seed: u32,
     zoom: f32,
     debug: bool,
-    load_rx: usize,
-    load_ry: usize,
     camera_x: i64,
     camera_y: i64,
     regions: Vec<(i32, i32, Region, Vec<Option<ChunkMesh>>)>,
 }
 impl WorldWindow {
-    pub fn new(seed: u32, load_rx: usize, load_ry: usize) -> Self {
+    pub fn new(seed: u32) -> Self {
         WorldWindow {
             seed,
             zoom: 10.,
             debug: false,
-            load_rx,
-            load_ry,
             camera_x: 0,
             camera_y: 0,
             regions: Vec::new(),
@@ -66,18 +62,9 @@ impl WorldWindow {
                             - (region_y << 8 | ((i / 16) << 4) as i32) as i64)
                             as f32;
 
-                        if rel_world_x.abs()
-                            < [self.load_rx as f32 / self.zoom * 16., 24.]
-                                .into_iter()
-                                .max_by(f32::total_cmp)
-                                .unwrap()
-                            && rel_world_y.abs() < [self.load_ry as f32 / self.zoom * 16., 24.]
-                            .into_iter()
-                            .max_by(f32::total_cmp)
-                            .unwrap()
-                        {
-                            draw_chunk_mesh(mesh, rel_world_x, rel_world_y, self.zoom, self.debug)
-                        }
+                        
+                        draw_chunk_mesh(mesh, rel_world_x, rel_world_y, self.zoom, self.debug)
+                        
                     }
                     None => {}
                 }
@@ -114,7 +101,8 @@ impl WorldWindow {
 
 #[macroquad::main("Sand Engine")]
 async fn main() {
-    let mut world_window = WorldWindow::new(rand::thread_rng().gen_range(0..u32::MAX), 33, 27);
+    let seed = rand::thread_rng().gen_range(0..u32::MAX);
+    let mut world_window = WorldWindow::new(seed);
     world_window.load();
 
     loop {
