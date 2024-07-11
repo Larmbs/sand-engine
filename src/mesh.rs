@@ -13,7 +13,7 @@ impl ChunkMesh {
         for x in 0..16 {
             let mut y = 0;
             while y < 16 {
-                if blocks[x + y * 16] == Block(0) {
+                if blocks[x + y * 16] == Block::AIR {
                     y += 1;
                     continue;
                 } else {
@@ -39,7 +39,7 @@ impl ChunkMesh {
                     // Mark visited
                     for dx in 0..w {
                         for dy in 0..h {
-                            blocks[(x + dx) + (y + dy) * 16] = Block(0);
+                            blocks[(x + dx) + (y + dy) * 16] = Block::AIR;
                         }
                     }
 

@@ -1,8 +1,10 @@
 use macroquad::{
-    color::PINK, prelude::{
+    color::PINK,
+    prelude::{
         clear_background, draw_rectangle, draw_rectangle_lines, draw_text, get_fps, is_key_down,
         mouse_position, next_frame, Color, KeyCode, BLACK, BLUE, RED,
-    }, window
+    },
+    window,
 };
 use rand::{self, Rng};
 use sand_engine::*;
@@ -21,7 +23,7 @@ impl WorldWindow {
         WorldWindow {
             seed,
             zoom: 10.,
-            debug: false,
+            debug: true,
             load_radius,
             camera_x: 0,
             camera_y: 0,
@@ -113,16 +115,16 @@ async fn main() {
 fn draw_chunk_mesh(chunk_mesh: &ChunkMesh, world_x: f32, world_y: f32, scale: f32, debug: bool) {
     for (block, rect) in chunk_mesh.mesh.iter() {
         draw_rectangle(
-            (world_x + rect.x) * scale,
-            (world_y + rect.y) * scale,
+            (world_x + rect.x) * scale + (window::screen_width() as usize / 2) as f32,
+            (world_y + rect.y) * scale + (window::screen_height() as usize / 2) as f32,
             rect.w * scale,
             rect.h * scale,
-            block.get_color(),
+            block.color(),
         );
         if debug {
             draw_rectangle_lines(
-                (world_x + rect.x) * scale,
-                (world_y + rect.y) * scale,
+                (world_x + rect.x) * scale + (window::screen_width() as usize / 2) as f32,
+                (world_y + rect.y) * scale + (window::screen_height() as usize / 2) as f32,
                 rect.w * scale,
                 rect.h * scale,
                 2.,
@@ -132,8 +134,8 @@ fn draw_chunk_mesh(chunk_mesh: &ChunkMesh, world_x: f32, world_y: f32, scale: f3
     }
     if debug {
         draw_rectangle_lines(
-            world_x * scale,
-            world_y * scale,
+            (world_x) * scale + (window::screen_width() as usize / 2) as f32,
+            (world_y) * scale + (window::screen_height() as usize / 2) as f32,
             16. * scale,
             16. * scale,
             2.,
@@ -145,8 +147,8 @@ fn draw_chunk_mesh(chunk_mesh: &ChunkMesh, world_x: f32, world_y: f32, scale: f3
 fn draw_mouse_selected_block(scale: f32) {
     let (mouse_x, mouse_y) = mouse_position();
     let world_pos = (
-        ((mouse_x) / scale) as i64,
-        ((mouse_y) / scale) as i64,
+        (mouse_x / scale) as i64,
+        (mouse_y / scale) as i64,
     );
     draw_rectangle_lines(
         world_pos.0 as f32 * scale,
