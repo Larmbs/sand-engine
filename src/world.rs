@@ -4,7 +4,7 @@ use std::fs;
 use std::path::PathBuf;
 use std::io;
 use macroquad::color::Color;
-use noise::{self, NoiseFn};
+use noise::{self, NoiseFn, Seedable};
 
 /// There are only 128 blocks
 #[derive(Serialize, Deserialize)]
@@ -36,7 +36,7 @@ impl Region {
     pub fn new(region_x: i32, region_y: i32, seed: u32) -> Self {
         Region {
             modified: true,
-            chunks: (0u8..=255u8).into_iter().map(|i| Some((true, generate_chunk(seed, region_x, region_y, i  % 16, i / 16)))).collect()
+            chunks: (0u8..=255u8).into_iter().map(|i| Some((true, generate_chunk(seed, region_x, region_y, i % 16, i / 16)))).collect()
         }
     }
 }
@@ -79,13 +79,15 @@ pub fn save_region(region_x: i32, region_y: i32, region: &Region) -> io::Result<
 pub fn generate_chunk(seed: u32, region_x: i32, region_y: i32, chunk_x: u8, chunk_y: u8) -> Chunk {
     let gen = noise::Simplex::new(seed);
 
-    let base_pos_x = (region_x << 8) as u64 | (chunk_x << 4) as u64;
-    let base_pos_y = (region_y << 8) as u64 | (chunk_y << 4) as u64;
+    let base_pos_x = ((region_x as i64) << 8) | (chunk_x as i64) << 4;
+    let base_pos_y = ((region_y as i64) << 8) | (chunk_y as i64) << 4;
 
-    let mut blocks = Vec::with_capacity(32*32 as usize);
+    let mut blocks = Vec::with_capacity(16*16 as usize);
     for i in 0..16*16 as usize {
-        
-        let block = Block{0: ((gen.get([(base_pos_x | (i % 16) as u64) as f64 / 16., (base_pos_y | (i / 16) as u64) as f64  / 16.]) * 4.) as u8)};
+        let world_x = base_pos_x | (15 - i % 16) as i64;
+        let world_y = base_pos_y | (15 - i / 16) as i64;
+
+        let block = Block {0: ((gen.get([world_x as f64 / 32., world_y as f64 / 32.]) * 4. - world_y as f64 / 32. + 4.) as u8)};
         blocks.push(block)
     }
     Chunk{blocks}
