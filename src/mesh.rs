@@ -1,12 +1,17 @@
 use super::{Block, Chunk};
 use macroquad::prelude::Rect;
 
+pub enum MeshType {
+    CULLED,
+    GREEDY,
+}
 pub struct ChunkMesh {
+    pub mesh_type: MeshType,
     pub mesh: Vec<(Block, Rect)>,
 }
 
 impl ChunkMesh {
-    pub fn from_chunk(chunk: &Chunk) -> ChunkMesh {
+    pub fn greedy_mesh(chunk: &Chunk) -> ChunkMesh {
         let mut blocks = chunk.blocks.clone();
         let mut mesh: Vec<(Block, Rect)> = Vec::new();
 
@@ -56,7 +61,32 @@ impl ChunkMesh {
                 }
             }
         }
-
-        ChunkMesh { mesh }
+        ChunkMesh {
+            mesh_type: MeshType::GREEDY,
+            mesh,
+        }
+    }
+    pub fn culled_mesh(chunk: &Chunk) -> ChunkMesh {
+        let mesh = chunk
+            .blocks
+            .clone()
+            .into_iter()
+            .enumerate()
+            .map(|(i, block)| {
+                (
+                    block,
+                    Rect {
+                        x: (i % 16) as f32,
+                        y: (i / 16) as f32,
+                        w: 1.,
+                        h: 1.,
+                    },
+                )
+            })
+            .collect();
+        ChunkMesh {
+            mesh_type: MeshType::CULLED,
+            mesh,
+        }
     }
 }

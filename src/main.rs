@@ -13,18 +13,20 @@ struct WorldWindow {
     seed: u32,
     zoom: f32,
     debug: bool,
-    load_radius: usize,
+    load_rx: usize,
+    load_ry: usize,
     camera_x: i64,
     camera_y: i64,
     regions: Vec<(i32, i32, Region, Vec<Option<ChunkMesh>>)>,
 }
 impl WorldWindow {
-    pub fn new(seed: u32, load_radius: usize) -> Self {
+    pub fn new(seed: u32, load_rx: usize, load_ry: usize) -> Self {
         WorldWindow {
             seed,
             zoom: 10.,
             debug: true,
-            load_radius,
+            load_rx,
+            load_ry,
             camera_x: 0,
             camera_y: 0,
             regions: Vec::new(),
@@ -41,7 +43,7 @@ impl WorldWindow {
         let mut meshes = Vec::new();
         for chunk in region.chunks.iter() {
             meshes.push(match chunk {
-                Some(chunk) => Some(ChunkMesh::from_chunk(&chunk.1)),
+                Some(chunk) => Some(ChunkMesh::greedy_mesh(&chunk.1)),
                 None => None,
             });
         }
@@ -57,19 +59,21 @@ impl WorldWindow {
             for (i, mesh) in chunk_meshes.iter().enumerate() {
                 match mesh {
                     Some(mesh) => {
-                        let world_x =
+                        let rel_world_x =
                             self.camera_x - (region_x << 8 | ((i % 16) << 4) as i32) as i64;
-                        let world_y =
+                        let rel_world_y =
                             self.camera_y - (region_y << 8 | ((i / 16) << 4) as i32) as i64;
 
-                        draw_chunk_mesh(mesh, world_x as f32, world_y as f32, self.zoom, self.debug)
+                        if rel_world_x.abs() < self.load_rx as i64 * 16 && rel_world_y.abs() < self.load_ry as i64 * 16 {
+                            draw_chunk_mesh(mesh, rel_world_x as f32, rel_world_y as f32, self.zoom, self.debug)
+                        }
                     }
                     None => {}
                 }
             }
         }
 
-        draw_mouse_selected_block(self.zoom);
+        draw_selected_block(self.zoom);
     }
     pub fn update_camera(&mut self) {
         let mut move_speed = 1;
@@ -99,7 +103,7 @@ impl WorldWindow {
 
 #[macroquad::main("Sand Engine")]
 async fn main() {
-    let mut world_window = WorldWindow::new(rand::thread_rng().gen_range(0..u32::MAX), 32);
+    let mut world_window = WorldWindow::new(rand::thread_rng().gen_range(0..u32::MAX), 2, 2);
     world_window.load();
 
     loop {
@@ -114,17 +118,19 @@ async fn main() {
 
 fn draw_chunk_mesh(chunk_mesh: &ChunkMesh, world_x: f32, world_y: f32, scale: f32, debug: bool) {
     for (block, rect) in chunk_mesh.mesh.iter() {
+        let screen_x = (world_x + rect.x) * scale + window::screen_width() / 2.;
+        let screen_y = (world_y + rect.y) * scale + window::screen_height() / 2.;
         draw_rectangle(
-            (world_x + rect.x) * scale + (window::screen_width() as usize / 2) as f32,
-            (world_y + rect.y) * scale + (window::screen_height() as usize / 2) as f32,
+            screen_x,
+            screen_y,
             rect.w * scale,
             rect.h * scale,
             block.color(),
         );
         if debug {
             draw_rectangle_lines(
-                (world_x + rect.x) * scale + (window::screen_width() as usize / 2) as f32,
-                (world_y + rect.y) * scale + (window::screen_height() as usize / 2) as f32,
+                screen_x,
+                screen_y,
                 rect.w * scale,
                 rect.h * scale,
                 2.,
@@ -134,8 +140,8 @@ fn draw_chunk_mesh(chunk_mesh: &ChunkMesh, world_x: f32, world_y: f32, scale: f3
     }
     if debug {
         draw_rectangle_lines(
-            (world_x) * scale + (window::screen_width() as usize / 2) as f32,
-            (world_y) * scale + (window::screen_height() as usize / 2) as f32,
+            (world_x) * scale + window::screen_width() / 2.,
+            (world_y) * scale + window::screen_height() / 2.,
             16. * scale,
             16. * scale,
             2.,
@@ -144,12 +150,16 @@ fn draw_chunk_mesh(chunk_mesh: &ChunkMesh, world_x: f32, world_y: f32, scale: f3
     }
 }
 
-fn draw_mouse_selected_block(scale: f32) {
-    let (mouse_x, mouse_y) = mouse_position();
-    let world_pos = ((mouse_x / scale) as i64, (mouse_y / scale) as i64);
+fn draw_selected_block(scale: f32) {
+    let mouse_pos = mouse_position();
+    let world_x = ((mouse_pos.0 - window::screen_width() / 2.) / scale).floor();
+    let world_y = ((mouse_pos.1 - window::screen_height() / 2.) / scale).floor();
+    let screen_x = world_x * scale + window::screen_width() / 2.;
+    let screen_y =world_y * scale + window::screen_height() / 2.;
+  
     draw_rectangle_lines(
-        world_pos.0 as f32 * scale,
-        world_pos.1 as f32 * scale,
+        screen_x,
+        screen_y,
         scale,
         scale,
         6.,

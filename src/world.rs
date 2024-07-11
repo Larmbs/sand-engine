@@ -6,7 +6,11 @@ use std::fs;
 use std::io;
 use std::path::PathBuf;
 
-/// There are only 128 blocks
+pub struct World {
+    
+}
+
+
 #[derive(Serialize, Deserialize, Clone, PartialEq, Eq)]
 #[repr(u8)]
 pub enum Block {
@@ -33,6 +37,8 @@ impl Block {
 /// Stores 16x16 chunks
 #[derive(Serialize, Deserialize)]
 pub struct Region {
+    pub region_x: i32,
+    pub region_y: i32,
     pub modified: bool,
     // Cannot enforce Vec size because serde is weird, but this will hold 16x16 blocks
     // Each entry carries bool determining if it is new
@@ -41,6 +47,8 @@ pub struct Region {
 impl Region {
     pub fn new(region_x: i32, region_y: i32, seed: u32) -> Self {
         Region {
+            region_x,
+            region_y,
             modified: true,
             chunks: (0u8..=255u8)
                 .into_iter()
