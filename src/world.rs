@@ -4,10 +4,10 @@ use std::fs;
 use std::path::PathBuf;
 use std::io;
 use macroquad::color::Color;
-use noise::{self, NoiseFn, Seedable};
+use noise::{self, NoiseFn};
 
 /// There are only 128 blocks
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Clone, PartialEq, Eq)]
 pub struct Block(pub u8);
 impl Block {
     /// Returns the color of the block, None means it is transparent
@@ -87,7 +87,7 @@ pub fn generate_chunk(seed: u32, region_x: i32, region_y: i32, chunk_x: u8, chun
         let world_x = base_pos_x | (15 - i % 16) as i64;
         let world_y = base_pos_y | (15 - i / 16) as i64;
 
-        let block = Block {0: ((gen.get([world_x as f64 / 32., world_y as f64 / 32.]) * 4. - world_y as f64 / 32. + 4.) as u8)};
+        let block = Block {0: ((gen.get([world_x as f64 / 128., world_y as f64 / 128.]) * 4. - world_y as f64 / 16. + 8.) as u8)};
         blocks.push(block)
     }
     Chunk{blocks}
