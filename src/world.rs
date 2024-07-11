@@ -106,8 +106,10 @@ pub fn generate_chunk(seed: u32, region_x: i32, region_y: i32, chunk_x: u8, chun
             + 8.) as u8;
         if value > 0 {
             if (gen.get([world_x as f64 / 128., (world_y + 4) as f64 / 128.]) * 4.
-            - (world_y + 4) as f64 / 16.
-            + 8.) as u8 > 0 {
+                - (world_y + 4) as f64 / 16.
+                + 8.) as u8
+                > 0
+            {
                 blocks.push(Block::STONE)
             } else {
                 blocks.push(Block::GRASS)

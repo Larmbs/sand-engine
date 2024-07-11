@@ -146,10 +146,7 @@ fn draw_chunk_mesh(chunk_mesh: &ChunkMesh, world_x: f32, world_y: f32, scale: f3
 
 fn draw_mouse_selected_block(scale: f32) {
     let (mouse_x, mouse_y) = mouse_position();
-    let world_pos = (
-        (mouse_x / scale) as i64,
-        (mouse_y / scale) as i64,
-    );
+    let world_pos = ((mouse_x / scale) as i64, (mouse_y / scale) as i64);
     draw_rectangle_lines(
         world_pos.0 as f32 * scale,
         world_pos.1 as f32 * scale,
