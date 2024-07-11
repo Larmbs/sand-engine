@@ -1,12 +1,11 @@
 use macroquad::{
-    prelude::{
+    color::PINK, prelude::{
         clear_background, draw_rectangle, draw_rectangle_lines, draw_text, get_fps, is_key_down,
-        next_frame, Color, KeyCode, BLACK, BLUE, RED,
-    },
-    window,
+        mouse_position, next_frame, Color, KeyCode, BLACK, BLUE, RED,
+    }, window
 };
-use sand_engine::*;
 use rand::{self, Rng};
+use sand_engine::*;
 
 struct WorldWindow {
     seed: u32,
@@ -67,6 +66,8 @@ impl WorldWindow {
                 }
             }
         }
+
+        draw_mouse_selected_block(self.zoom);
     }
     pub fn update_camera(&mut self) {
         let mut move_speed = 1;
@@ -139,4 +140,20 @@ fn draw_chunk_mesh(chunk_mesh: &ChunkMesh, world_x: f32, world_y: f32, scale: f3
             BLUE,
         );
     }
+}
+
+fn draw_mouse_selected_block(scale: f32) {
+    let (mouse_x, mouse_y) = mouse_position();
+    let world_pos = (
+        ((mouse_x - (window::screen_width()) / 2.) / scale) as i64,
+        ((mouse_y - (window::screen_height()) / 2.) / scale) as i64,
+    );
+    draw_rectangle_lines(
+        world_pos.0 as f32 * scale + window::screen_width() / 2.,
+        world_pos.1 as f32 * scale + window::screen_height() / 2.,
+        scale,
+        scale,
+        6.,
+        PINK,
+    )
 }
