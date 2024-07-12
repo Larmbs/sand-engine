@@ -1,11 +1,9 @@
 use macroquad::{
-    color::PINK,
-    prelude::{
-        clear_background, draw_rectangle, draw_rectangle_lines, draw_text, get_fps, is_key_down,
-        mouse_position, next_frame, Color, KeyCode, BLACK, BLUE, RED,
-    },
-    window,
+    color::PINK, material::gl_use_default_material, prelude::{
+        clear_background, draw_rectangle, draw_rectangle_lines, draw_text, get_fps, gl_use_material, is_key_down, load_material, mouse_position, next_frame, Color, KeyCode, MaterialParams, ShaderSource, BLACK, BLUE, RED, WHITE
+    }, window
 };
+
 use rand::{self, Rng};
 use sand_engine::*;
 
@@ -111,8 +109,19 @@ async fn main() {
     let mut world_window = WorldWindow::new(seed);
     world_window.load();
 
+    let gradient_material = load_material(
+        ShaderSource::Glsl {
+            vertex: include_str!("../shaders/gradient_vertex_shader.glsl"),
+            fragment: include_str!("../shaders/gradient_fragment_shader.glsl"),
+        },
+        MaterialParams::default(),
+    )
+    .unwrap();
+
     loop {
-        clear_background(Color::from_hex(0xa4e7f5));
+        gl_use_material(&gradient_material);
+        draw_rectangle(0., 0., window::screen_width(), window::screen_height(), WHITE);
+        gl_use_default_material();
         world_window.draw();
         world_window.update_camera();
         draw_text(format!("FPS: {}", get_fps()).as_str(), 16., 32., 32., BLACK);
