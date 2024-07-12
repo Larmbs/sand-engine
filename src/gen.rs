@@ -3,6 +3,7 @@ use super::Block;
 use noise::{self, NoiseFn};
 
 
+#[allow(unused)]
 pub struct Generator {
     seed: u32,
     gen: noise::Simplex,

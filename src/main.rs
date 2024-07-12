@@ -1,6 +1,6 @@
 use macroquad::{
     color::PINK, material::gl_use_default_material, prelude::{
-        clear_background, draw_rectangle, draw_rectangle_lines, draw_text, get_fps, gl_use_material, is_key_down, load_material, mouse_position, next_frame, Color, KeyCode, MaterialParams, ShaderSource, BLACK, BLUE, RED, WHITE
+        draw_rectangle, draw_rectangle_lines, draw_text, get_fps, gl_use_material, is_key_down, load_material, mouse_position, next_frame, KeyCode, MaterialParams, ShaderSource, BLACK, BLUE, RED, WHITE
     }, window
 };
 
