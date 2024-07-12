@@ -50,21 +50,27 @@ impl WorldWindow {
             meshes,
         ))
     }
+
+    /// Determines if world coordinate is visible
+    pub fn is_coordinate_visible(&self, world_x: i64, world_y: i64) -> bool {
+        (self.camera_x - world_x) as f32 * self.zoom <= window::screen_width() / 2.
+            && (self.camera_y - world_y) as f32 * self.zoom <= window::screen_height() / 2.
+    }
+
     pub fn draw(&self) {
         for (region_x, region_y, _, chunk_meshes) in &self.regions {
             for (i, mesh) in chunk_meshes.iter().enumerate() {
                 match mesh {
                     Some(mesh) => {
-                        let rel_world_x = (self.camera_x
-                            - (region_x << 8 | ((i % 16) << 4) as i32) as i64)
-                            as f32;
-                        let rel_world_y = (self.camera_y
-                            - (region_y << 8 | ((i / 16) << 4) as i32) as i64)
-                            as f32;
+                        let chunk_world_x = (region_x << 8) as i64 | ((i % 16) << 4) as i64;
+                        let chunk_world_y = (region_y << 8) as i64 | ((i / 16) << 4) as i64;
 
-                        
-                        draw_chunk_mesh(mesh, rel_world_x, rel_world_y, self.zoom, self.debug)
-                        
+                        let rel_world_x = (self.camera_x - chunk_world_x) as f32;
+                        let rel_world_y = (self.camera_y - chunk_world_y) as f32;
+
+                        if self.is_coordinate_visible(chunk_world_x, chunk_world_y) {
+                            draw_chunk_mesh(mesh, rel_world_x, rel_world_y, self.zoom, self.debug)
+                        }
                     }
                     None => {}
                 }
@@ -117,8 +123,8 @@ async fn main() {
 
 fn draw_chunk_mesh(chunk_mesh: &ChunkMesh, world_x: f32, world_y: f32, scale: f32, debug: bool) {
     for (block, rect) in chunk_mesh.mesh.iter() {
-        let screen_x = (world_x + rect.x - 8.) * scale + window::screen_width() / 2.;
-        let screen_y = (world_y + rect.y - 8.) * scale + window::screen_height() / 2.;
+        let screen_x = (world_x + rect.x) * scale + window::screen_width() / 2.;
+        let screen_y = (world_y + rect.y) * scale + window::screen_height() / 2.;
         draw_rectangle(
             screen_x,
             screen_y,
@@ -132,8 +138,8 @@ fn draw_chunk_mesh(chunk_mesh: &ChunkMesh, world_x: f32, world_y: f32, scale: f3
     }
     if debug {
         draw_rectangle_lines(
-            (world_x - 8.) * scale + window::screen_width() / 2.,
-            (world_y - 8.) * scale + window::screen_height() / 2.,
+            (world_x) * scale + window::screen_width() / 2.,
+            (world_y) * scale + window::screen_height() / 2.,
             16. * scale,
             16. * scale,
             2.,

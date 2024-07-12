@@ -1,16 +1,20 @@
+//! Module which defines meshing for the sand_engine
 use super::{Block, Chunk};
 use macroquad::prelude::Rect;
 
+/// Distinguishes culled meshes from greedy one
 pub enum MeshType {
     CULLED,
     GREEDY,
 }
+
+/// Represents rectangles to be drawn within a chunk
 pub struct ChunkMesh {
     pub mesh_type: MeshType,
     pub mesh: Vec<(Block, Rect)>,
 }
-
 impl ChunkMesh {
+    /// Creates a chunk mesh but uses the greedy algorithm to solve it
     pub fn greedy_mesh(chunk: &Chunk) -> ChunkMesh {
         let mut blocks = chunk.blocks.clone();
         let mut mesh: Vec<(Block, Rect)> = Vec::new();
@@ -66,6 +70,7 @@ impl ChunkMesh {
             mesh,
         }
     }
+    /// Creates a chunk mesh but uses a culled algorithm to solve
     pub fn culled_mesh(chunk: &Chunk) -> ChunkMesh {
         let mesh = chunk
             .blocks

@@ -1,12 +1,13 @@
+use anyhow::Context;
 use bincode::{deserialize_from, serialize_into};
 use macroquad::color::Color;
-use noise::{self, NoiseFn};
 use serde::{Deserialize, Serialize};
 use std::fs;
 use std::io;
 use std::path::PathBuf;
-
-pub struct World {}
+use super::Generator;
+use serde_json;
+use anyhow::Result;
 
 #[derive(Serialize, Deserialize, Clone, PartialEq, Eq)]
 #[repr(u8)]
@@ -43,6 +44,7 @@ pub struct Region {
 }
 impl Region {
     pub fn new(region_x: i32, region_y: i32, seed: u32) -> Self {
+        let gen = Generator::new(seed);
         Region {
             region_x,
             region_y,
@@ -52,7 +54,7 @@ impl Region {
                 .map(|i| {
                     Some((
                         true,
-                        generate_chunk(seed, region_x, region_y, i % 16, i / 16),
+                        generate_chunk(&gen, region_x, region_y, i % 16, i / 16),
                     ))
                 })
                 .collect(),
@@ -65,6 +67,25 @@ impl Region {
 pub struct Chunk {
     pub active: bool,
     pub blocks: Vec<Block>,
+}
+
+/// Represents world meta data file with info on world
+#[derive(Serialize, Deserialize)]
+pub struct World {
+    name: String,
+    seed: u32,
+    #[serde(skip_deserializing, skip_serializing, default)]    
+    gen: Option<Generator>,
+}
+impl World {
+    pub fn init(&mut self) {
+        self.gen = Some(Generator::new(self.seed));
+    }
+    pub fn load(world_name: String) -> Result<Self> {
+        let world_path = PathBuf::from("worlds").join(world_name);
+        let reader = fs::File::open(world_path.join("world.json")).context("Failed to find world")?;
+        serde_json::from_reader(reader).context("World file is broken")
+    }
 }
 
 /// Converts region location to its file path
@@ -96,9 +117,7 @@ pub fn save_region(region_x: i32, region_y: i32, region: &Region) -> io::Result<
     Ok(())
 }
 
-pub fn generate_chunk(seed: u32, region_x: i32, region_y: i32, chunk_x: u8, chunk_y: u8) -> Chunk {
-    let gen = noise::Simplex::new(seed);
-
+pub fn generate_chunk(gen: &Generator, region_x: i32, region_y: i32, chunk_x: u8, chunk_y: u8) -> Chunk {
     let base_pos_x = ((region_x as i64) << 8) | (chunk_x as i64) << 4;
     let base_pos_y = ((region_y as i64) << 8) | (chunk_y as i64) << 4;
 
@@ -106,23 +125,7 @@ pub fn generate_chunk(seed: u32, region_x: i32, region_y: i32, chunk_x: u8, chun
     for i in 0..16 * 16 as usize {
         let world_x = base_pos_x | (15 - i % 16) as i64;
         let world_y = base_pos_y | (15 - i / 16) as i64;
-
-        let value = (gen.get([world_x as f64 / 128., world_y as f64 / 128.]) * 4.
-            - world_y as f64 / 16.
-            + 8.) as u8;
-        if value > 0 {
-            if (gen.get([world_x as f64 / 128., (world_y + 4) as f64 / 128.]) * 4.
-                - (world_y + 4) as f64 / 16.
-                + 8.) as u8
-                > 0
-            {
-                blocks.push(Block::STONE)
-            } else {
-                blocks.push(Block::GRASS)
-            }
-        } else {
-            blocks.push(Block::AIR)
-        }
+        blocks.push(gen.get_block(world_x, world_y));
     }
     Chunk {
         active: false,
