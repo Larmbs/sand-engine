@@ -22,7 +22,7 @@ impl ChunkMesh {
         for x in 0..16 {
             let mut y = 0;
             while y < 16 {
-                if blocks[x + y * 16] == Block::AIR {
+                if blocks[x + y * 16] == Block::Air {
                     y += 1;
                     continue;
                 } else {
@@ -48,20 +48,27 @@ impl ChunkMesh {
                     // Mark visited
                     for dx in 0..w {
                         for dy in 0..h {
-                            blocks[(x + dx) + (y + dy) * 16] = Block::AIR;
+                            blocks[(x + dx) + (y + dy) * 16] = Block::Air;
                         }
                     }
-                
+
                     // Create the rectangle
                     let rect = Rect {
                         x: x as f32,
-                        y: if block_type == Block::WaterEdge {y as f32 + 0.2} else {y as f32},
+                        y: if block_type == Block::WaterEdge {
+                            y as f32 + 0.2
+                        } else {
+                            y as f32
+                        },
                         w: w as f32,
-                        h:if block_type == Block::WaterEdge {h as f32 - 0.2} else {h as f32},
+                        h: if block_type == Block::WaterEdge {
+                            h as f32 - 0.2
+                        } else {
+                            h as f32
+                        },
                     };
-                    
+
                     mesh.push((block_type, rect));
-                    
 
                     y += h;
                 }

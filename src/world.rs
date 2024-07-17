@@ -1,34 +1,36 @@
+use super::Generator;
 use anyhow::Context;
+use anyhow::Result;
 use bincode::{deserialize_from, serialize_into};
 use macroquad::color::Color;
 use serde::{Deserialize, Serialize};
+use serde_json;
 use std::fs;
 use std::io;
 use std::path::PathBuf;
-use super::Generator;
-use serde_json;
-use anyhow::Result;
 
 #[derive(Serialize, Deserialize, Clone, PartialEq, Eq)]
 #[repr(u8)]
 pub enum Block {
-    AIR,
-    GRASS,
-    DIRT,
-    STONE,
-    WATER,
+    Air,
+    GrassBlock,
+    Dirt,
+    Stone,
+    Water,
     WaterEdge,
-    SAND,
+    Sand,
+    SandStone,
 }
 impl Block {
     pub fn color(&self) -> Color {
         match self {
-            Block::AIR => Color::new(0., 0., 0., 0.),
-            Block::GRASS => Color::from_hex(0x307a2a),
-            Block::DIRT => Color::from_hex(0xba7938),
-            Block::STONE => Color::from_hex(0x515357),
-            Block::WATER | Block::WaterEdge => Color::from_hex(0x4b53eb),
-            Block::SAND => Color::from_hex(0xbbc26d),
+            Block::Air => Color::new(0., 0., 0., 0.),
+            Block::GrassBlock => Color::from_hex(0x307a2a),
+            Block::Dirt => Color::from_hex(0xba7938),
+            Block::Stone => Color::from_hex(0x515357),
+            Block::Water | Block::WaterEdge => Color::from_hex(0x4b53eb),
+            Block::Sand => Color::from_hex(0xbbc26d),
+            Block::SandStone => Color::from_hex(0xbbc26d),
         }
     }
 }
@@ -75,7 +77,7 @@ pub struct Chunk {
 pub struct World {
     name: String,
     seed: u32,
-    #[serde(skip_deserializing, skip_serializing, default)]    
+    #[serde(skip_deserializing, skip_serializing, default)]
     gen: Option<Generator>,
 }
 impl World {
@@ -84,7 +86,8 @@ impl World {
     }
     pub fn load(world_name: String) -> Result<Self> {
         let world_path = PathBuf::from("worlds").join(world_name);
-        let reader = fs::File::open(world_path.join("world.json")).context("Failed to find world")?;
+        let reader =
+            fs::File::open(world_path.join("world.json")).context("Failed to find world")?;
         serde_json::from_reader(reader).context("World file is broken")
     }
 }
@@ -118,7 +121,13 @@ pub fn save_region(region_x: i32, region_y: i32, region: &Region) -> io::Result<
     Ok(())
 }
 
-pub fn generate_chunk(gen: &Generator, region_x: i32, region_y: i32, chunk_x: u8, chunk_y: u8) -> Chunk {
+pub fn generate_chunk(
+    gen: &Generator,
+    region_x: i32,
+    region_y: i32,
+    chunk_x: u8,
+    chunk_y: u8,
+) -> Chunk {
     let base_pos_x = ((region_x as i64) << 8) | (chunk_x as i64) << 4;
     let base_pos_y = ((region_y as i64) << 8) | (chunk_y as i64) << 4;
 

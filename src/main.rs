@@ -1,7 +1,13 @@
 use macroquad::{
-    color::PINK, material::gl_use_default_material, prelude::{
-        draw_rectangle, draw_rectangle_lines, draw_text, get_fps, gl_use_material, is_key_down, load_material, mouse_position, next_frame, KeyCode, MaterialParams, ShaderSource, BLACK, BLUE, RED, WHITE
-    }, window
+    color::PINK,
+    material::gl_use_default_material,
+    prelude::{
+        draw_rectangle, draw_rectangle_lines, draw_text, get_fps, gl_use_material, is_key_down,
+        load_material, mouse_position, next_frame, KeyCode, MaterialParams, ShaderSource, BLACK,
+        BLUE, RED, WHITE,
+    },
+    shapes::draw_line,
+    window,
 };
 
 use rand::{self, Rng};
@@ -103,6 +109,62 @@ impl WorldWindow {
     }
 }
 
+fn draw_chunk_mesh(chunk_mesh: &ChunkMesh, world_x: f32, world_y: f32, scale: f32, debug: bool) {
+    static DEBUG_LINE_WIDTH: f32 = 2.;
+
+    for (block, rect) in chunk_mesh.mesh.iter() {
+        let screen_x = (world_x + rect.x) * scale + window::screen_width() / 2.;
+        let screen_y = (world_y + rect.y) * scale + window::screen_height() / 2.;
+        draw_rectangle(
+            screen_x,
+            screen_y,
+            rect.w * scale,
+            rect.h * scale,
+            block.color(),
+        );
+        if block == &Block::WaterEdge {
+            draw_line(
+                screen_x,
+                screen_y,
+                screen_x + rect.w * scale,
+                screen_y,
+                scale / 4.,
+                WHITE,
+            )
+        }
+        if debug {
+            draw_rectangle_lines(
+                screen_x,
+                screen_y,
+                rect.w * scale,
+                rect.h * scale,
+                DEBUG_LINE_WIDTH,
+                RED,
+            );
+        }
+    }
+    if debug {
+        draw_rectangle_lines(
+            (world_x) * scale + window::screen_width() / 2.,
+            (world_y) * scale + window::screen_height() / 2.,
+            16. * scale,
+            16. * scale,
+            DEBUG_LINE_WIDTH,
+            BLUE,
+        );
+    }
+}
+
+fn draw_selected_block(scale: f32) {
+    let mouse_pos = mouse_position();
+    let world_x = ((mouse_pos.0 - window::screen_width() / 2.) / scale).floor();
+    let world_y = ((mouse_pos.1 - window::screen_height() / 2.) / scale).floor();
+    let screen_x = world_x * scale + window::screen_width() / 2.;
+    let screen_y = world_y * scale + window::screen_height() / 2.;
+
+    draw_rectangle_lines(screen_x, screen_y, scale, scale, 6., PINK)
+}
+
 #[macroquad::main("Sand Engine")]
 async fn main() {
     let seed = rand::thread_rng().gen_range(0..u32::MAX);
@@ -120,7 +182,13 @@ async fn main() {
 
     loop {
         gl_use_material(&gradient_material);
-        draw_rectangle(0., 0., window::screen_width(), window::screen_height(), WHITE);
+        draw_rectangle(
+            0.,
+            0.,
+            window::screen_width(),
+            window::screen_height(),
+            WHITE,
+        );
         gl_use_default_material();
         world_window.draw();
         world_window.update_camera();
@@ -128,41 +196,4 @@ async fn main() {
 
         next_frame().await
     }
-}
-
-fn draw_chunk_mesh(chunk_mesh: &ChunkMesh, world_x: f32, world_y: f32, scale: f32, debug: bool) {
-    for (block, rect) in chunk_mesh.mesh.iter() {
-        let screen_x = (world_x + rect.x) * scale + window::screen_width() / 2.;
-        let screen_y = (world_y + rect.y) * scale + window::screen_height() / 2.;
-        draw_rectangle(
-            screen_x,
-            screen_y,
-            rect.w * scale,
-            rect.h * scale,
-            block.color(),
-        );
-        if debug {
-            draw_rectangle_lines(screen_x, screen_y, rect.w * scale, rect.h * scale, 2., RED);
-        }
-    }
-    if debug {
-        draw_rectangle_lines(
-            (world_x) * scale + window::screen_width() / 2.,
-            (world_y) * scale + window::screen_height() / 2.,
-            16. * scale,
-            16. * scale,
-            2.,
-            BLUE,
-        );
-    }
-}
-
-fn draw_selected_block(scale: f32) {
-    let mouse_pos = mouse_position();
-    let world_x = ((mouse_pos.0 - window::screen_width() / 2.) / scale).floor();
-    let world_y = ((mouse_pos.1 - window::screen_height() / 2.) / scale).floor();
-    let screen_x = world_x * scale + window::screen_width() / 2.;
-    let screen_y = world_y * scale + window::screen_height() / 2.;
-
-    draw_rectangle_lines(screen_x, screen_y, scale, scale, 6., PINK)
 }
