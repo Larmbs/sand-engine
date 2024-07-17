@@ -1,10 +1,11 @@
 use macroquad::{
     color::PINK,
     material::gl_use_default_material,
+    miniquad::UniformType,
     prelude::{
         draw_rectangle, draw_rectangle_lines, draw_text, get_fps, gl_use_material, is_key_down,
-        load_material, mouse_position, next_frame, KeyCode, MaterialParams, ShaderSource, BLACK,
-        BLUE, RED, WHITE,
+        load_material, mouse_position, next_frame, KeyCode, Material, MaterialParams, ShaderSource,
+        BLACK, BLUE, RED, WHITE,
     },
     shapes::draw_line,
     window,
@@ -20,16 +21,29 @@ struct WorldWindow {
     camera_x: i64,
     camera_y: i64,
     regions: Vec<(i32, i32, Region, Vec<Option<ChunkMesh>>)>,
+    bg_mat: Material,
 }
 impl WorldWindow {
     pub fn new(seed: u32) -> Self {
+        let material = load_material(
+            ShaderSource::Glsl {
+                vertex: include_str!("../shaders/gradient_vertex_shader.glsl"),
+                fragment: include_str!("../shaders/gradient_fragment_shader.glsl"),
+            },
+            MaterialParams {
+                uniforms: vec![("offset".to_string(), UniformType::Float1)],
+                ..Default::default()
+            },
+        )
+        .unwrap();
         WorldWindow {
             seed,
             zoom: 10.,
-            debug: true,
+            debug: false,
             camera_x: 0,
             camera_y: 0,
             regions: Vec::new(),
+            bg_mat: material,
         }
     }
     pub fn load(&mut self) {
@@ -62,6 +76,7 @@ impl WorldWindow {
     }
 
     pub fn draw(&self) {
+        self.draw_background();
         for (region_x, region_y, _, chunk_meshes) in &self.regions {
             for (i, mesh) in chunk_meshes.iter().enumerate() {
                 match mesh {
@@ -82,6 +97,19 @@ impl WorldWindow {
         }
 
         draw_selected_block(self.zoom);
+    }
+    fn draw_background(&self) {
+        self.bg_mat
+            .set_uniform("offset", (self.camera_y as f32 / self.zoom) / 256.);
+        gl_use_material(&self.bg_mat);
+        draw_rectangle(
+            0.,
+            0.,
+            window::screen_width(),
+            window::screen_height(),
+            WHITE,
+        );
+        gl_use_default_material();
     }
     pub fn update_camera(&mut self) {
         let mut move_speed = 1;
@@ -171,29 +199,10 @@ async fn main() {
     let mut world_window = WorldWindow::new(seed);
     world_window.load();
 
-    let gradient_material = load_material(
-        ShaderSource::Glsl {
-            vertex: include_str!("../shaders/gradient_vertex_shader.glsl"),
-            fragment: include_str!("../shaders/gradient_fragment_shader.glsl"),
-        },
-        MaterialParams::default(),
-    )
-    .unwrap();
-
     loop {
-        gl_use_material(&gradient_material);
-        draw_rectangle(
-            0.,
-            0.,
-            window::screen_width(),
-            window::screen_height(),
-            WHITE,
-        );
-        gl_use_default_material();
         world_window.draw();
         world_window.update_camera();
         draw_text(format!("FPS: {}", get_fps()).as_str(), 16., 32., 32., BLACK);
-
         next_frame().await
     }
 }

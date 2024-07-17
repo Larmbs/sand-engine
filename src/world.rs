@@ -30,7 +30,7 @@ impl Block {
             Block::Stone => Color::from_hex(0x515357),
             Block::Water | Block::WaterEdge => Color::from_hex(0x4b53eb),
             Block::Sand => Color::from_hex(0xbbc26d),
-            Block::SandStone => Color::from_hex(0xbbc26d),
+            Block::SandStone => Color::from_hex(0xe1e897),
         }
     }
 }
