@@ -17,6 +17,7 @@ pub enum Block {
     DIRT,
     STONE,
     WATER,
+    WaterEdge,
     SAND,
 }
 impl Block {
@@ -26,7 +27,7 @@ impl Block {
             Block::GRASS => Color::from_hex(0x307a2a),
             Block::DIRT => Color::from_hex(0xba7938),
             Block::STONE => Color::from_hex(0x515357),
-            Block::WATER => Color::from_hex(0x4b53eb),
+            Block::WATER | Block::WaterEdge => Color::from_hex(0x4b53eb),
             Block::SAND => Color::from_hex(0xbbc26d),
         }
     }

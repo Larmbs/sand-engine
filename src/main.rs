@@ -20,7 +20,7 @@ impl WorldWindow {
         WorldWindow {
             seed,
             zoom: 10.,
-            debug: false,
+            debug: true,
             camera_x: 0,
             camera_y: 0,
             regions: Vec::new(),

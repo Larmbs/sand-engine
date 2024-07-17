@@ -28,7 +28,13 @@ impl Generator {
                 }
             }
         } else {
-            Block::AIR
+            if world_y > 48 {
+                Block::AIR
+            } else if world_y == 48  {
+                Block::WaterEdge
+            } else {
+                Block::WATER
+            }
         }
     }
     pub fn is_solid(&self, world_x: i64, world_y: i64) -> bool {
