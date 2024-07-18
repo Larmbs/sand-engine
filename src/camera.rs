@@ -123,7 +123,7 @@ impl Camera {
         }
 
         if self.flags & DEBUG_MENU > 0 {
-            self.draw_debug_menu()
+            self.draw_debug_menu(manager.get_region_count())
         }
     }
 }
@@ -221,7 +221,8 @@ impl Camera {
         gl_use_default_material();
     }
     /// Draws debug menu
-    fn draw_debug_menu(&self) {
+    fn draw_debug_menu(&self, regions: usize) {
         draw_text(format!("FPS: {}", get_fps()).as_str(), 16., 32., 32., BLACK);
+        draw_text(format!("Regions Loaded: {}", regions).as_str(), 16., 50., 32., BLACK);
     }
 }

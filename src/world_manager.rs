@@ -60,6 +60,9 @@ impl WorldManager {
             self.regions.remove(&key);
         }
     }
+    pub fn get_region_count(&self) -> usize {
+        self.regions.len()
+    }
 }
 
 pub mod space_conversion {

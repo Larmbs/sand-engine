@@ -1,4 +1,4 @@
-use macroquad::prelude::{draw_text, get_fps, next_frame, BLACK};
+use macroquad::prelude::next_frame;
 
 use rand::{self, Rng};
 use sand_engine::*;

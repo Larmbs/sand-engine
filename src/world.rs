@@ -99,7 +99,8 @@ impl Region {
             let mesh = ChunkMesh::greedy_mesh(self.get_chunk(gen, x, y));
             self.chunk_meshes[index] = Some(mesh);
         }
-    
+        
+        self.chunks[index].as_mut().unwrap().last_used = Local::now();
         self.chunk_meshes[index].as_ref().unwrap()
     }
     pub fn get_region_path(region_x: &i32, region_y: &i32) -> PathBuf {
