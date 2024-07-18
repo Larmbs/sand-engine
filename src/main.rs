@@ -57,7 +57,7 @@ impl WorldWindow {
         let mut meshes = Vec::new();
         for chunk in region.chunks.iter() {
             meshes.push(match chunk {
-                Some(chunk) => Some(ChunkMesh::greedy_mesh(&chunk.1)),
+                Some(chunk) => Some(ChunkMesh::greedy_mesh(&chunk)),
                 None => None,
             });
         }

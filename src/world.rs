@@ -6,9 +6,9 @@ use macroquad::color::Color;
 use serde::{Deserialize, Serialize};
 use serde_json;
 use std::fs;
-use std::io;
 use std::path::PathBuf;
 
+/// Maximum of 256 blocks
 #[derive(Serialize, Deserialize, Clone, PartialEq, Eq)]
 #[repr(u8)]
 pub enum Block {
@@ -35,15 +35,20 @@ impl Block {
     }
 }
 
+/// Chunks stores 16x16 blocks
+#[derive(Serialize, Deserialize, Clone)]
+pub struct Chunk {
+    pub active: bool,
+    pub blocks: Vec<Block>,
+}
+
 /// Stores 16x16 chunks
 #[derive(Serialize, Deserialize)]
 pub struct Region {
     pub region_x: i32,
     pub region_y: i32,
     pub modified: bool,
-    // Cannot enforce Vec size because serde is weird, but this will hold 16x16 blocks
-    // Each entry carries bool determining if it is new
-    pub chunks: Vec<Option<(bool, Chunk)>>,
+    pub chunks: Vec<Option<Chunk>>,
 }
 impl Region {
     pub fn new(region_x: i32, region_y: i32, seed: u32) -> Self {
@@ -54,22 +59,45 @@ impl Region {
             modified: true,
             chunks: (0u8..=255u8)
                 .into_iter()
-                .map(|i| {
-                    Some((
-                        true,
-                        generate_chunk(&gen, region_x, region_y, i % 16, i / 16),
-                    ))
-                })
+                .map(|i| Some(gen.gen_chunk(region_x, region_y, i % 16, i / 16)))
                 .collect(),
         }
     }
-}
+    pub fn get_chunk(&self, x: &u8, y: &u8) -> &Option<Chunk> {
+        assert!(x < &16 && y < &16, "That is outside this region");
+        &self.chunks[(x + y * 16) as usize]
+    }
+    pub fn get_region_path(region_x: &i32, region_y: &i32) -> PathBuf {
+        PathBuf::from(format!("world_file/regions/{region_x}.{region_y}.rf"))
+    }
+    pub fn load(region_x: &i32, region_y: &i32) -> Self {
+        let path = Self::get_region_path(&region_x, &region_y);
+        let file = match fs::File::open(path) {
+            Ok(file) => file,
+            Err(_) => return Self::new_empty(region_x, region_y),
+        };
+        match deserialize_from(file) {
+            Ok(region) => region,
+            Err(_) => Self::new_empty(region_x, region_y),
+        }
+    }
+    pub fn save(&self) -> Result<()> {
+        let path = Self::get_region_path(&self.region_x, &self.region_y);
 
-#[derive(Serialize, Deserialize)]
-/// Chunks stores 16x16 blocks
-pub struct Chunk {
-    pub active: bool,
-    pub blocks: Vec<Block>,
+        // Serialize the region and save it to the file
+        let file = fs::File::create(path)?;
+        serialize_into(file, self).unwrap();
+
+        Ok(())
+    }
+    pub fn new_empty(region_x: &i32, region_y: &i32) -> Self {
+        Self {
+            region_x: *region_x,
+            region_y: *region_y,
+            modified: false,
+            chunks: vec![None; 16 * 16],
+        }
+    }
 }
 
 /// Represents world meta data file with info on world
@@ -77,72 +105,12 @@ pub struct Chunk {
 pub struct World {
     name: String,
     seed: u32,
-    #[serde(skip_deserializing, skip_serializing, default)]
-    gen: Option<Generator>,
 }
 impl World {
-    pub fn init(&mut self) {
-        self.gen = Some(Generator::new(self.seed));
-    }
     pub fn load(world_name: String) -> Result<Self> {
         let world_path = PathBuf::from("worlds").join(world_name);
         let reader =
             fs::File::open(world_path.join("world.json")).context("Failed to find world")?;
         serde_json::from_reader(reader).context("World file is broken")
     }
-}
-
-/// Converts region location to its file path
-pub fn get_region_path(region_x: &i32, region_y: &i32) -> PathBuf {
-    PathBuf::from(format!("world_file/regions/{region_x}.{region_y}.rf"))
-}
-
-/// Fetches region from game files and if not found returns none
-pub fn get_region(region_x: i32, region_y: i32) -> Option<Region> {
-    let path = get_region_path(&region_x, &region_y);
-    let file = match fs::File::open(path) {
-        Ok(file) => file,
-        Err(_) => return None,
-    };
-    match deserialize_from(file) {
-        Ok(region) => Some(region),
-        Err(_) => None,
-    }
-}
-
-/// Save region to a file.
-pub fn save_region(region_x: i32, region_y: i32, region: &Region) -> io::Result<()> {
-    let path = get_region_path(&region_x, &region_y);
-
-    // Serialize the region and save it to the file
-    let file = fs::File::create(path)?;
-    serialize_into(file, region).unwrap();
-
-    Ok(())
-}
-
-pub fn generate_chunk(
-    gen: &Generator,
-    region_x: i32,
-    region_y: i32,
-    chunk_x: u8,
-    chunk_y: u8,
-) -> Chunk {
-    let base_pos_x = ((region_x as i64) << 8) | (chunk_x as i64) << 4;
-    let base_pos_y = ((region_y as i64) << 8) | (chunk_y as i64) << 4;
-
-    let mut blocks = Vec::with_capacity(16 * 16 as usize);
-    for i in 0..16 * 16 as usize {
-        let world_x = base_pos_x | (15 - i % 16) as i64;
-        let world_y = base_pos_y | (15 - i / 16) as i64;
-        blocks.push(gen.get_block(world_x, world_y));
-    }
-    Chunk {
-        active: false,
-        blocks,
-    }
-}
-
-pub fn world_to_chunk_pos(world_x: u64, world_y: u64) -> u8 {
-    (((world_x >> 4) & 0b1111) << 4 | ((world_y >> 4) & 0b1111)) as u8
 }

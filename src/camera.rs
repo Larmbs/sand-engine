@@ -5,8 +5,9 @@ use std::collections::HashMap;
 use super::{Block, ChunkMesh};
 use macroquad::{
     prelude::{
-        draw_line, draw_rectangle, draw_rectangle_lines, gl_use_default_material, gl_use_material,
-        mouse_position, Color, Material, BLUE, PINK, RED, WHITE, draw_text, get_fps, BLACK
+        draw_line, draw_rectangle, draw_rectangle_lines, draw_text, get_fps,
+        gl_use_default_material, gl_use_material, mouse_position, Color, Material, BLACK, BLUE,
+        PINK, RED, WHITE,
     },
     window,
 };
@@ -50,12 +51,15 @@ impl Camera {
 /// Functions to draw and update camera
 impl Camera {
     pub fn draw_chunks(&self, loaded_meshes: &HashMap<(i64, i64), ChunkMesh>) {
-        // Clearing background
         self.draw_background();
 
         for (world_x, world_y) in loaded_meshes.keys() {
             if self.is_coordinate_visible(*world_x, *world_y) {
-                self.draw_chunk_mesh(loaded_meshes.get(&(*world_x, *world_y)).unwrap(), *world_x as f32, *world_y as f32)
+                self.draw_chunk_mesh(
+                    loaded_meshes.get(&(*world_x, *world_y)).unwrap(),
+                    *world_x as f32,
+                    *world_y as f32,
+                )
             }
         }
 
