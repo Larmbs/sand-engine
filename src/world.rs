@@ -92,6 +92,7 @@ impl Region {
     pub fn get_chunk_mesh(&mut self, gen: &Generator, x: &u8, y: &u8) -> &ChunkMesh {
         assert!(x < &16 && y < &16, "That is outside this region");
     
+        self.last_used = Local::now();
         let index = (x + y * 16) as usize;
     
         if self.chunk_meshes[index].is_none() {

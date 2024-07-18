@@ -7,7 +7,7 @@ use sand_engine::*;
 async fn main() {
     let seed = rand::thread_rng().gen_range(0..u32::MAX);
 
-    let mut camera = Camera::new(DEBUG_CHUNKS | DEBUG_MENU | DEBUG_QUAD | DRAW_SELECTION_BOX);
+    let mut camera = Camera::new(DEBUG_MENU | DRAW_SELECTION_BOX);
     let mut manager = WorldManager::new(seed);
 
     loop {

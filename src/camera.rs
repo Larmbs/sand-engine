@@ -2,7 +2,7 @@
 
 use std::collections::HashMap;
 
-use crate::WorldManager;
+use crate::{space_conversion, WorldManager};
 
 use super::{Block, ChunkMesh};
 use macroquad::{
@@ -106,10 +106,10 @@ impl Camera {
                 let screen_x = x as f32 * chunk_dim;
                 let screen_y = y as f32 * chunk_dim;
                 let (world_x, world_y) = self.screen_to_world_cord(screen_x, screen_y);
-                let (region_x, region_y) = WorldManager::get_region_cords(&world_x, &world_y);
-                let (chunk_region_x, chunk_region_y) = WorldManager::get_region_chunk_cords(&world_x, &world_y);
+                let (region_x, region_y) = space_conversion::get_region_cords(&world_x, &world_y);
+                let (chunk_region_x, chunk_region_y) = space_conversion::get_region_chunk_cords(&world_x, &world_y);
 
-                let (chunk_cord_x, chunk_cord_y) = WorldManager::get_chunk_world_cords(&world_x, &world_y);
+                let (chunk_cord_x, chunk_cord_y) = space_conversion::get_chunk_world_cords(&world_x, &world_y);
                 let rel_world_x = (self.x - chunk_cord_x) as f32;
                 let rel_world_y = (self.y - chunk_cord_y) as f32;
                 self.draw_chunk_mesh(

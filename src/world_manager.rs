@@ -1,6 +1,6 @@
-use chrono::{Duration, Local, TimeDelta};
+use chrono::{Duration, Local};
 
-use super::{Block, ChunkMesh, Generator, Region};
+use super::{ChunkMesh, Generator, Region};
 use std::collections::HashMap;
 
 /// When trying to load a chunk here is the order of operations
@@ -34,16 +34,19 @@ impl WorldManager {
         regional_chunk_y: &u8,
     ) -> &ChunkMesh {
         if !self.regions.contains_key(&(*region_x, *region_y)) {
-            self.regions.insert((*region_x, *region_y), Region::load(region_x, region_y));
+            self.regions
+                .insert((*region_x, *region_y), Region::load(region_x, region_y));
         }
-    
+
         let region = self.regions.get_mut(&(*region_x, *region_y)).unwrap();
         region.get_chunk_mesh(&self.gen, regional_chunk_x, regional_chunk_y)
     }
     /// Cleans out all regions that have not been used in a while
     pub fn clean(&mut self) {
         let now = Local::now();
-        let keys_to_remove: Vec<_> = self.regions.iter()
+        let keys_to_remove: Vec<_> = self
+            .regions
+            .iter()
             .filter_map(|(key, region)| {
                 if now - region.last_used > Duration::seconds(2) {
                     Some(key.clone())
@@ -57,6 +60,9 @@ impl WorldManager {
             self.regions.remove(&key);
         }
     }
+}
+
+pub mod space_conversion {
     /// Returns the regional coordinates from world ones
     pub fn get_region_cords(world_x: &i64, world_y: &i64) -> (i32, i32) {
         ((world_x >> 8) as i32, (world_y >> 8) as i32)
@@ -68,6 +74,7 @@ impl WorldManager {
             ((world_y >> 4) & 0b1111) as u8,
         )
     }
+    /// Gets the world cords of a chunks 0,0 block
     pub fn get_chunk_world_cords(world_x: &i64, world_y: &i64) -> (i64, i64) {
         (world_x & !0b1111, world_y & !0b1111)
     }
