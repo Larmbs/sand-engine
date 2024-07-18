@@ -103,4 +103,11 @@ impl ChunkMesh {
             mesh,
         }
     }
+    /// Generates an empty chunk mesh
+    pub fn empty() -> Self {
+        ChunkMesh {
+            mesh_type: MeshType::CULLED,
+            mesh: vec![],
+        }
+    }
 }

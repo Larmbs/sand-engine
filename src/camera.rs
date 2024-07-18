@@ -6,8 +6,8 @@ use super::{Block, ChunkMesh};
 use macroquad::{
     prelude::{
         draw_line, draw_rectangle, draw_rectangle_lines, draw_text, get_fps,
-        gl_use_default_material, gl_use_material, mouse_position, Color, Material, BLACK, BLUE,
-        PINK, RED, WHITE,
+        gl_use_default_material, gl_use_material, is_key_down, mouse_position, Color, KeyCode,
+        Material, BLACK, BLUE, PINK, RED, WHITE,
     },
     window,
 };
@@ -50,6 +50,30 @@ impl Camera {
 }
 /// Functions to draw and update camera
 impl Camera {
+    pub fn update(&mut self) {
+        let mut move_speed = 1;
+        if is_key_down(KeyCode::LeftShift) {
+            move_speed = 5;
+        }
+        if is_key_down(KeyCode::W) {
+            self.y += move_speed;
+        }
+        if is_key_down(KeyCode::S) {
+            self.y -= move_speed;
+        }
+        if is_key_down(KeyCode::D) {
+            self.x -= move_speed;
+        }
+        if is_key_down(KeyCode::A) {
+            self.x += move_speed;
+        }
+        if is_key_down(KeyCode::Z) {
+            self.zoom *= 0.9;
+        }
+        if is_key_down(KeyCode::X) {
+            self.zoom *= 1.1;
+        }
+    }
     pub fn draw_chunks(&self, loaded_meshes: &HashMap<(i64, i64), ChunkMesh>) {
         self.draw_background();
 

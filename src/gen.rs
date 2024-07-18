@@ -1,5 +1,5 @@
 //! Generator functions for creating world from seed
-//!
+
 use super::{Block, Chunk};
 use noise::{self, NoiseFn};
 

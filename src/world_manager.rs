@@ -1,4 +1,4 @@
-use super::{Block, ChunkMesh, Generator, World, Region};
+use super::{Block, ChunkMesh, Generator, Region, World};
 use std::collections::HashMap;
 
 /// When trying to load a chunk here is the order of operations
@@ -16,27 +16,17 @@ pub struct WorldManager {
     gen: Generator,
     // Hashmap of loaded regions
     regions: HashMap<(i32, i32), Region>,
-    // Hashmap holds loaded chunk meshes
-    meshes: HashMap<(i64, i64), ChunkMesh>,
 }
 /// These are the public functions open to other objects
 impl WorldManager {
-    pub fn get_chunk_mesh(&mut self, world_x: &i64, world_y: &i64) -> &ChunkMesh {
-        match self.meshes.get(&(*world_x, *world_y)) {
-            Some(mesh) => {
-                mesh
-            }
-            None => {
-                match self.regions.get(&Self::get_region_cords(world_x, world_y)) {
-                    Some(region) => {
-                        todo!() // Try finding chunk within region and create mesh
-                    },
-                    None => {
-                        todo!() // Must load a new region
-                    },
-                }
-            }
-        }
+    pub fn get_chunk_mesh(
+        &mut self,
+        region_x: &i32,
+        region_y: &i64,
+        regional_chunk_x: &u8,
+        regional_chunk_y: &u8,
+    ) -> &ChunkMesh {
+        todo!()
     }
     /// Returns the regional coordinates from world ones
     pub fn get_region_cords(world_x: &i64, world_y: &i64) -> (i32, i32) {

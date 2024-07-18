@@ -47,7 +47,6 @@ pub struct Chunk {
 pub struct Region {
     pub region_x: i32,
     pub region_y: i32,
-    pub modified: bool,
     pub chunks: Vec<Option<Chunk>>,
 }
 impl Region {
@@ -56,7 +55,6 @@ impl Region {
         Region {
             region_x,
             region_y,
-            modified: true,
             chunks: (0u8..=255u8)
                 .into_iter()
                 .map(|i| Some(gen.gen_chunk(region_x, region_y, i % 16, i / 16)))
@@ -94,8 +92,7 @@ impl Region {
         Self {
             region_x: *region_x,
             region_y: *region_y,
-            modified: false,
-            chunks: vec![None; 16 * 16],
+            chunks: Vec::from([const { None }; 16 * 16]),
         }
     }
 }
