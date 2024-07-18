@@ -1,4 +1,4 @@
-use super::{Block, ChunkMesh, Generator, Region, World};
+use super::{Block, ChunkMesh, Generator, Region};
 use std::collections::HashMap;
 
 /// When trying to load a chunk here is the order of operations
@@ -12,7 +12,6 @@ use std::collections::HashMap;
 /// It loads chunks when asked but it hides region functionality
 pub struct WorldManager {
     // Object which contains world gen data
-    world: World,
     gen: Generator,
     // Hashmap of loaded regions
     regions: HashMap<(i32, i32), Region>,

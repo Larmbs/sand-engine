@@ -44,8 +44,7 @@ impl Generator {
             blocks.push(self.gen_block(world_x, world_y));
         }
         Chunk {
-            active: false,
-            blocks,
+            blocks: blocks.try_into().unwrap(),
         }
     }
     pub fn get_height(&self, world_x: i64) -> i64 {

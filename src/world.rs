@@ -5,11 +5,12 @@ use bincode::{deserialize_from, serialize_into};
 use macroquad::color::Color;
 use serde::{Deserialize, Serialize};
 use serde_json;
+use serde_with::serde_as;
 use std::fs;
 use std::path::PathBuf;
 
 /// Maximum of 256 blocks
-#[derive(Serialize, Deserialize, Clone, PartialEq, Eq)]
+#[derive(Serialize, Deserialize, Clone, PartialEq, Eq, Debug)]
 #[repr(u8)]
 pub enum Block {
     Air,
@@ -36,18 +37,21 @@ impl Block {
 }
 
 /// Chunks stores 16x16 blocks
-#[derive(Serialize, Deserialize, Clone)]
+#[serde_as]
+#[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct Chunk {
-    pub active: bool,
-    pub blocks: Vec<Block>,
+    #[serde_as(as = "[_; 16*16]")]
+    pub blocks: [Block; 16 * 16],
 }
 
 /// Stores 16x16 chunks
+#[serde_as]
 #[derive(Serialize, Deserialize)]
 pub struct Region {
     pub region_x: i32,
     pub region_y: i32,
-    pub chunks: Vec<Option<Chunk>>,
+    #[serde_as(as = "[_; 16*16]")]
+    pub chunks: [Option<Chunk>; 16 * 16],
 }
 impl Region {
     pub fn new(region_x: i32, region_y: i32, seed: u32) -> Self {
@@ -58,7 +62,9 @@ impl Region {
             chunks: (0u8..=255u8)
                 .into_iter()
                 .map(|i| Some(gen.gen_chunk(region_x, region_y, i % 16, i / 16)))
-                .collect(),
+                .collect::<Vec<Option<Chunk>>>()
+                .try_into()
+                .unwrap(),
         }
     }
     pub fn get_chunk(&self, x: &u8, y: &u8) -> &Option<Chunk> {
@@ -92,22 +98,22 @@ impl Region {
         Self {
             region_x: *region_x,
             region_y: *region_y,
-            chunks: Vec::from([const { None }; 16 * 16]),
+            chunks: [const { None }; 16 * 16],
         }
     }
 }
 
-/// Represents world meta data file with info on world
-#[derive(Serialize, Deserialize)]
-pub struct World {
-    name: String,
-    seed: u32,
-}
-impl World {
-    pub fn load(world_name: String) -> Result<Self> {
-        let world_path = PathBuf::from("worlds").join(world_name);
-        let reader =
-            fs::File::open(world_path.join("world.json")).context("Failed to find world")?;
-        serde_json::from_reader(reader).context("World file is broken")
-    }
-}
+// /// Represents world meta data file with info on world
+// #[derive(Serialize, Deserialize)]
+// pub struct World {
+//     name: String,
+//     seed: u32,
+// }
+// impl World {
+//     pub fn load(world_name: String) -> Result<Self> {
+//         let world_path = PathBuf::from("worlds").join(world_name);
+//         let reader =
+//             fs::File::open(world_path.join("world.json")).context("Failed to find world")?;
+//         serde_json::from_reader(reader).context("World file is broken")
+//     }
+// }
