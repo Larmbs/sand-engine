@@ -33,9 +33,9 @@ impl Generator {
             },
         }
     }
-    pub fn gen_chunk(&self, region_x: i32, region_y: i32, chunk_x: u8, chunk_y: u8) -> Chunk {
-        let base_pos_x = ((region_x as i64) << 8) | (chunk_x as i64) << 4;
-        let base_pos_y = ((region_y as i64) << 8) | (chunk_y as i64) << 4;
+    pub fn gen_chunk(&self, region_x: &i32, region_y: &i32, chunk_x: &u8, chunk_y: &u8) -> Chunk {
+        let base_pos_x = ((*region_x as i64) << 8) | (*chunk_x as i64) << 4;
+        let base_pos_y = ((*region_y as i64) << 8) | (*chunk_y as i64) << 4;
 
         let mut blocks = Vec::with_capacity(16 * 16 as usize);
         for i in 0..16 * 16 as usize {
@@ -43,9 +43,7 @@ impl Generator {
             let world_y = base_pos_y | (15 - i / 16) as i64;
             blocks.push(self.gen_block(world_x, world_y));
         }
-        Chunk {
-            blocks: blocks.try_into().unwrap(),
-        }
+        Chunk::new(blocks.try_into().unwrap())
     }
     pub fn get_height(&self, world_x: i64) -> i64 {
         ((self.gen.get([world_x as f64 / 256., 0.]) + 0.5) * 120. - 25.) as i64

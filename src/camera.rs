@@ -2,12 +2,15 @@
 
 use std::collections::HashMap;
 
+use crate::WorldManager;
+
 use super::{Block, ChunkMesh};
 use macroquad::{
     prelude::{
         draw_line, draw_rectangle, draw_rectangle_lines, draw_text, get_fps,
-        gl_use_default_material, gl_use_material, is_key_down, mouse_position, Color, KeyCode,
-        Material, BLACK, BLUE, PINK, RED, WHITE,
+        gl_use_default_material, gl_use_material, is_key_down, load_material, mouse_position,
+        Color, KeyCode, Material, MaterialParams, ShaderSource, UniformType, BLACK, BLUE, PINK,
+        RED, WHITE,
     },
     window,
 };
@@ -37,6 +40,26 @@ pub struct Camera {
 }
 /// Functions for controlling camera
 impl Camera {
+    pub fn new(flags: Flags) -> Self {
+        let material = load_material(
+            ShaderSource::Glsl {
+                vertex: include_str!("../shaders/gradient_vertex_shader.glsl"),
+                fragment: include_str!("../shaders/gradient_fragment_shader.glsl"),
+            },
+            MaterialParams {
+                uniforms: vec![("offset".to_string(), UniformType::Float1)],
+                ..Default::default()
+            },
+        )
+        .unwrap();
+        Camera {
+            zoom: 10.,
+            x: 0,
+            y: 0,
+            bg_mat: material,
+            flags,
+        }
+    }
     pub fn set_pos(&mut self, x: i64, y: i64) {
         self.x = x;
         self.y = y;
@@ -74,16 +97,26 @@ impl Camera {
             self.zoom *= 1.1;
         }
     }
-    pub fn draw_chunks(&self, loaded_meshes: &HashMap<(i64, i64), ChunkMesh>) {
+    pub fn draw(&self, manager: &mut WorldManager) {
         self.draw_background();
 
-        for (world_x, world_y) in loaded_meshes.keys() {
-            if self.is_coordinate_visible(*world_x, *world_y) {
+        let chunk_dim = self.zoom * 16.;
+        for x in -1..(window::screen_width()/chunk_dim) as isize + 1 {
+            for y in -1..(window::screen_height()/chunk_dim) as isize + 1 {
+                let screen_x = x as f32 * chunk_dim;
+                let screen_y = y as f32 * chunk_dim;
+                let (world_x, world_y) = self.screen_to_world_cord(screen_x, screen_y);
+                let (region_x, region_y) = WorldManager::get_region_cords(&world_x, &world_y);
+                let (chunk_region_x, chunk_region_y) = WorldManager::get_region_chunk_cords(&world_x, &world_y);
+
+                let (chunk_cord_x, chunk_cord_y) = WorldManager::get_chunk_world_cords(&world_x, &world_y);
+                let rel_world_x = (self.x - chunk_cord_x) as f32;
+                let rel_world_y = (self.y - chunk_cord_y) as f32;
                 self.draw_chunk_mesh(
-                    loaded_meshes.get(&(*world_x, *world_y)).unwrap(),
-                    *world_x as f32,
-                    *world_y as f32,
-                )
+                    manager.get_chunk_mesh(&region_x, &region_y, &chunk_region_x, &chunk_region_y),
+                    rel_world_x as f32,
+                    rel_world_y as f32,
+                );
             }
         }
 
@@ -97,20 +130,28 @@ impl Camera {
     }
 }
 impl Camera {
+    pub fn screen_to_world_cord(&self, screen_x: f32, screen_y: f32) -> (i64, i64) {
+        let center_x = window::screen_width() / 2.;
+        let center_y = window::screen_height() / 2.;
+        (
+            self.x - ((screen_x - center_x) / self.zoom) as i64,
+            self.y - ((screen_y - center_y) / self.zoom) as i64,
+        )
+    }
     /// Determines if a world coordinate is in view
     pub fn is_coordinate_visible(&self, world_x: i64, world_y: i64) -> bool {
         (self.x - world_x) as f32 * self.zoom <= window::screen_width() / 2.
             && (self.y - world_y) as f32 * self.zoom <= window::screen_height() / 2.
     }
     /// Draws a chunk mesh to the screen
-    fn draw_chunk_mesh(&self, chunk_mesh: &ChunkMesh, world_x: f32, world_y: f32) {
+    fn draw_chunk_mesh(&self, chunk_mesh: &ChunkMesh, rel_world_x: f32, rel_world_y: f32) {
         static DEBUG_LINE_WIDTH: f32 = 2.;
         let center_x = window::screen_width() / 2.;
         let center_y = window::screen_height() / 2.;
 
         for (block, rect) in chunk_mesh.mesh.iter() {
-            let screen_x = (world_x + rect.x) * self.zoom + center_x;
-            let screen_y = (world_y + rect.y) * self.zoom + center_y;
+            let screen_x = (rel_world_x + rect.x) * self.zoom + center_x;
+            let screen_y = (rel_world_y + rect.y) * self.zoom + center_y;
             draw_rectangle(
                 screen_x,
                 screen_y,
@@ -141,8 +182,8 @@ impl Camera {
         }
         if self.flags & DEBUG_CHUNKS > 0 {
             draw_rectangle_lines(
-                (world_x) * self.zoom + center_x,
-                (world_y) * self.zoom + center_y,
+                (rel_world_x) * self.zoom + center_x,
+                (rel_world_y) * self.zoom + center_y,
                 16. * self.zoom,
                 16. * self.zoom,
                 DEBUG_LINE_WIDTH,

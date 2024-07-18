@@ -1,13 +1,14 @@
+use crate::ChunkMesh;
+
 use super::Generator;
-use anyhow::Context;
 use anyhow::Result;
 use bincode::{deserialize_from, serialize_into};
 use macroquad::color::Color;
 use serde::{Deserialize, Serialize};
-use serde_json;
 use serde_with::serde_as;
 use std::fs;
 use std::path::PathBuf;
+use chrono::{DateTime, Local, Timelike};
 
 /// Maximum of 256 blocks
 #[derive(Serialize, Deserialize, Clone, PartialEq, Eq, Debug)]
@@ -42,6 +43,16 @@ impl Block {
 pub struct Chunk {
     #[serde_as(as = "[_; 16*16]")]
     pub blocks: [Block; 16 * 16],
+    #[serde(skip_serializing, default = "default_time", skip_deserializing)]
+    pub last_used: DateTime<Local>,
+}
+impl Chunk {
+    pub fn new(blocks: [Block; 16 * 16]) -> Self {
+        Self {
+            blocks,
+            last_used: Local::now(),
+        }
+    }
 }
 
 /// Stores 16x16 chunks
@@ -50,26 +61,45 @@ pub struct Chunk {
 pub struct Region {
     pub region_x: i32,
     pub region_y: i32,
+    #[serde(skip_serializing, default = "default_time", skip_deserializing)]
+    pub last_used: DateTime<Local>,
     #[serde_as(as = "[_; 16*16]")]
     pub chunks: [Option<Chunk>; 16 * 16],
+    #[serde_as(as = "[_; 16*16]")]
+    #[serde(skip_serializing, default = "default_chunk_meshes", skip_deserializing)]
+    pub chunk_meshes: [Option<ChunkMesh>; 16 * 16]
+}
+fn default_chunk_meshes() -> [Option<ChunkMesh>; 16 * 16] {
+    [const { None }; 16 * 16]
+}
+fn default_time() -> DateTime<Local> {
+    Local::now()
 }
 impl Region {
-    pub fn new(region_x: i32, region_y: i32, seed: u32) -> Self {
-        let gen = Generator::new(seed);
-        Region {
-            region_x,
-            region_y,
-            chunks: (0u8..=255u8)
-                .into_iter()
-                .map(|i| Some(gen.gen_chunk(region_x, region_y, i % 16, i / 16)))
-                .collect::<Vec<Option<Chunk>>>()
-                .try_into()
-                .unwrap(),
-        }
-    }
-    pub fn get_chunk(&self, x: &u8, y: &u8) -> &Option<Chunk> {
+    pub fn get_chunk(&mut self, gen: &Generator, x: &u8, y: &u8) -> &Chunk {
         assert!(x < &16 && y < &16, "That is outside this region");
-        &self.chunks[(x + y * 16) as usize]
+
+        self.last_used = Local::now();
+        let index = (x + y * 16) as usize;
+        
+        if self.chunks[index].is_none() {
+            let chunk = gen.gen_chunk(&self.region_x, &self.region_y, x, y);
+            self.chunks[index] = Some(chunk);
+        }
+        self.chunks[index].as_mut().unwrap().last_used = Local::now();
+        self.chunks[index].as_ref().unwrap()
+    }
+    pub fn get_chunk_mesh(&mut self, gen: &Generator, x: &u8, y: &u8) -> &ChunkMesh {
+        assert!(x < &16 && y < &16, "That is outside this region");
+    
+        let index = (x + y * 16) as usize;
+    
+        if self.chunk_meshes[index].is_none() {
+            let mesh = ChunkMesh::greedy_mesh(self.get_chunk(gen, x, y));
+            self.chunk_meshes[index] = Some(mesh);
+        }
+    
+        self.chunk_meshes[index].as_ref().unwrap()
     }
     pub fn get_region_path(region_x: &i32, region_y: &i32) -> PathBuf {
         PathBuf::from(format!("world_file/regions/{region_x}.{region_y}.rf"))
@@ -98,7 +128,9 @@ impl Region {
         Self {
             region_x: *region_x,
             region_y: *region_y,
+            last_used: Local::now(),
             chunks: [const { None }; 16 * 16],
+            chunk_meshes: default_chunk_meshes()
         }
     }
 }
