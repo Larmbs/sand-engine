@@ -13,6 +13,7 @@ async fn main() {
     loop {
         camera.draw(&mut manager);
         camera.update();
+        manager.clean();
         draw_text(format!("FPS: {}", get_fps()).as_str(), 16., 32., 32., BLACK);
         next_frame().await
     }
