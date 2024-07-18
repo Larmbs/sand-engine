@@ -8,7 +8,7 @@ use serde::{Deserialize, Serialize};
 use serde_with::serde_as;
 use std::fs;
 use std::path::PathBuf;
-use chrono::{DateTime, Local, Timelike};
+use chrono::{DateTime, Local};
 
 /// Maximum of 256 blocks
 #[derive(Serialize, Deserialize, Clone, PartialEq, Eq, Debug)]

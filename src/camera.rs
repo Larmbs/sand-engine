@@ -1,7 +1,5 @@
 //! Defines a camera to view the world
 
-use std::collections::HashMap;
-
 use crate::{space_conversion, WorldManager};
 
 use super::{Block, ChunkMesh};
