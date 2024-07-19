@@ -7,12 +7,12 @@ use sand_engine::*;
 async fn main() {
     let seed = rand::thread_rng().gen_range(0..u32::MAX);
 
-    let mut camera = Camera::new(DEBUG_MENU | DRAW_SELECTION_BOX);
+    let mut camera = Camera::new(flags::DEBUG_MENU | flags::DRAW_SELECTION_BOX | flags::CLAMP_ZOOM);
     let mut manager = WorldManager::new(seed);
-
+    let mut controller = PlayerController::new(0, 0);
     loop {
         camera.draw(&mut manager);
-        camera.update();
+        controller.update(&mut camera, &mut manager);
         manager.clean();
         next_frame().await
     }

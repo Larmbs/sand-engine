@@ -12,3 +12,6 @@ pub use camera::*;
 
 mod world_manager;
 pub use world_manager::*;
+
+mod controller;
+pub use controller::*;

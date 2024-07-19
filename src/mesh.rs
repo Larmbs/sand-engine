@@ -1,5 +1,5 @@
 //! Module which defines meshing for the sand_engine
-use super::{Block, Chunk};
+use super::{blocks::Block, chunks::Chunk};
 use macroquad::prelude::Rect;
 
 /// Distinguishes culled meshes from greedy one
