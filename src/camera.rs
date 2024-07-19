@@ -125,7 +125,7 @@ impl Camera {
         let center_x = window::screen_width() / 2.0;
         let center_y = window::screen_height() / 2.0;
 
-        for (block, rect) in chunk_mesh.mesh.iter() {
+        for (color, rect) in chunk_mesh.mesh.iter() {
             // Flip x and y coordinates within the chunk
             let flipped_x = 16.0 - rect.x - rect.w;
             let flipped_y = 16.0 - rect.y - rect.h;
@@ -138,19 +138,8 @@ impl Camera {
                 screen_y,
                 rect.w * self.zoom,
                 rect.h * self.zoom,
-                block.color(),
+                *color,
             );
-
-            if block == &Block::WaterEdge {
-                draw_line(
-                    screen_x,
-                    screen_y,
-                    screen_x + rect.w * self.zoom,
-                    screen_y,
-                    self.zoom / 4.0,
-                    WHITE,
-                );
-            }
 
             if self.flags & flags::DEBUG_QUAD > 0 {
                 draw_rectangle_lines(

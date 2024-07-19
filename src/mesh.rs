@@ -1,6 +1,6 @@
 //! Module which defines meshing for the sand_engine
 use super::{blocks::Block, chunks::Chunk};
-use macroquad::prelude::Rect;
+use macroquad::{color::{Color, WHITE}, prelude::Rect};
 
 /// Distinguishes culled meshes from greedy one
 pub enum MeshType {
@@ -11,13 +11,13 @@ pub enum MeshType {
 /// Represents rectangles to be drawn within a chunk
 pub struct ChunkMesh {
     pub mesh_type: MeshType,
-    pub mesh: Vec<(Block, Rect)>,
+    pub mesh: Vec<(Color, Rect)>,
 }
 impl ChunkMesh {
     /// Creates a chunk mesh but uses the greedy algorithm to solve it
     pub fn greedy_mesh(chunk: &Chunk) -> ChunkMesh {
         let mut blocks = chunk.blocks.clone();
-        let mut mesh: Vec<(Block, Rect)> = Vec::new();
+        let mut mesh: Vec<(Color, Rect)> = Vec::new();
 
         for x in 0..16 {
             let mut y = 0;
@@ -52,23 +52,31 @@ impl ChunkMesh {
                         }
                     }
 
-                    // Create the rectangle
-                    let rect = Rect {
-                        x: x as f32,
-                        y: if block_type == Block::WaterEdge {
-                            y as f32 + 0.2
-                        } else {
-                            y as f32
+                    let rects = match block_type {
+                        Block::WaterEdge => {
+                            vec![(block_type.color(), Rect {
+                                x: x as f32,
+                                y: y as f32,
+                                w: w as f32,
+                                h: h as f32 - 0.3,
+                            }),
+                            (WHITE, Rect {
+                                x: x as f32,
+                                y: y as f32 + 0.6,
+                                w: w as f32,
+                                h: 0.2,
+                            })]
                         },
-                        w: w as f32,
-                        h: if block_type == Block::WaterEdge {
-                            h as f32 - 0.2
-                        } else {
-                            h as f32
-                        },
+                        _ => vec![(block_type.color(), Rect {
+                            x: x as f32,
+                            y: y as f32,
+                            w: w as f32,
+                            h: h as f32,
+                        })]
                     };
+                   
 
-                    mesh.push((block_type, rect));
+                    mesh.extend(rects);
 
                     y += h;
                 }
@@ -88,7 +96,7 @@ impl ChunkMesh {
             .enumerate()
             .map(|(i, block)| {
                 (
-                    block,
+                    block.color(),
                     Rect {
                         x: (i % 16) as f32,
                         y: (i / 16) as f32,
