@@ -1,6 +1,6 @@
+use super::Camera;
 use crate::WorldManager;
 use macroquad::prelude::{is_key_down, KeyCode};
-use super::Camera;
 
 /* Camera Options */
 const MAX_ZOOM: f32 = 30.;
@@ -78,8 +78,14 @@ pub struct PlayerController {
 impl PlayerController {
     pub fn new(x: i64, y: i64) -> PlayerController {
         PlayerController {
-            x: FixedPoint { large: x, small: 0. },
-            y: FixedPoint { large: y, small: 0. },
+            x: FixedPoint {
+                large: x,
+                small: 0.,
+            },
+            y: FixedPoint {
+                large: y,
+                small: 0.,
+            },
             vy: 0.,
             zoom: DEFAULT_ZOOM,
         }
@@ -87,7 +93,10 @@ impl PlayerController {
 }
 impl Controller for PlayerController {
     fn update(&mut self, camera: &mut Camera, manager: &mut WorldManager) {
-        if manager.get_block(&self.x.large, &(self.y.large - 1)).is_solid() {
+        if manager
+            .get_block(&self.x.large, &(self.y.large - 1))
+            .is_solid()
+        {
             self.vy = 0.;
             if is_key_down(KeyCode::Space) {
                 self.vy = 3.;
@@ -95,14 +104,20 @@ impl Controller for PlayerController {
         } else {
             self.vy -= 0.1;
         }
-        
+
         if is_key_down(KeyCode::A) {
-            if !manager.get_block(&(self.x.large + 1), &self.y.large).is_solid() {
+            if !manager
+                .get_block(&(self.x.large + 1), &self.y.large)
+                .is_solid()
+            {
                 self.x.move_by(0.5);
             }
         }
         if is_key_down(KeyCode::D) {
-            if !manager.get_block(&(self.x.large - 1), &self.y.large).is_solid() {
+            if !manager
+                .get_block(&(self.x.large - 1), &self.y.large)
+                .is_solid()
+            {
                 self.x.move_by(-0.5);
             }
         }

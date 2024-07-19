@@ -1,6 +1,6 @@
-use chrono::{Duration, Local};
+use super::{gen::WorldGenerator, ChunkMesh, Region};
 use crate::blocks::Block;
-use super::{ChunkMesh, Region, gen::WorldGenerator};
+use chrono::{Duration, Local};
 use std::collections::HashMap;
 
 pub struct WorldManager {
@@ -24,7 +24,8 @@ impl WorldManager {
         regional_chunk_y: &u8,
     ) -> &ChunkMesh {
         if !self.regions.contains_key(&(*region_x, *region_y)) {
-            self.regions.insert((*region_x, *region_y), Region::load(region_x, region_y));
+            self.regions
+                .insert((*region_x, *region_y), Region::load(region_x, region_y));
         }
 
         let region = self.regions.get_mut(&(*region_x, *region_y)).unwrap();
@@ -57,7 +58,8 @@ impl WorldManager {
     pub fn get_block(&mut self, world_x: &i64, world_y: &i64) -> &Block {
         let (region_x, region_y) = conversion::get_region_cords(world_x, world_y);
         if !self.regions.contains_key(&(region_x, region_y)) {
-            self.regions.insert((region_x, region_y), Region::load(&region_x, &region_y));
+            self.regions
+                .insert((region_x, region_y), Region::load(&region_x, &region_y));
         }
         let (chunk_x, chunk_y) = conversion::get_region_chunk_cords(world_x, world_y);
         let (local_x, local_y) = conversion::get_local_chunk_cords(world_x, world_y);

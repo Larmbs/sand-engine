@@ -5,7 +5,6 @@ use chunks::Chunk;
 pub mod gen;
 use gen::Generator;
 
-
 use super::ChunkMesh;
 use anyhow::Result;
 use chrono::{DateTime, Local};
@@ -16,7 +15,6 @@ use serde::{Deserialize, Serialize};
 use serde_with::serde_as;
 
 use std::{fs, path::PathBuf};
-
 
 #[serde_as]
 #[derive(Serialize, Deserialize)]
@@ -74,8 +72,18 @@ impl Region {
             chunk_meshes: default_chunk_meshes(),
         }
     }
-    pub fn get_block(&mut self, gen: &impl Generator, chunk_x: &u8, chunk_y: &u8, x: &u8, y: &u8) -> &Block {
-        assert!(chunk_x < &16 && chunk_y < &16, "That is outside this region");
+    pub fn get_block(
+        &mut self,
+        gen: &impl Generator,
+        chunk_x: &u8,
+        chunk_y: &u8,
+        x: &u8,
+        y: &u8,
+    ) -> &Block {
+        assert!(
+            chunk_x < &16 && chunk_y < &16,
+            "That is outside this region"
+        );
         assert!(x < &16 && y < &16, "That is outside the chunk");
 
         // Update last used timestamp for the region

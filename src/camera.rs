@@ -1,7 +1,7 @@
 //! Defines a camera to view the world
 
-use crate::{conversion, WorldManager};
 use super::{blocks::Block, ChunkMesh};
+use crate::{conversion, WorldManager};
 use macroquad::{
     prelude::{
         draw_line, draw_rectangle, draw_rectangle_lines, draw_text, get_fps,
@@ -86,8 +86,10 @@ impl Camera {
                 let screen_y = y as f32 * chunk_dim;
                 let (world_x, world_y) = self.screen_to_world_cord(screen_x, screen_y);
                 let (region_x, region_y) = conversion::get_region_cords(&world_x, &world_y);
-                let (chunk_region_x, chunk_region_y) = conversion::get_region_chunk_cords(&world_x, &world_y);
-                let (chunk_cord_x, chunk_cord_y) = conversion::get_chunk_world_cords(&world_x, &world_y);
+                let (chunk_region_x, chunk_region_y) =
+                    conversion::get_region_chunk_cords(&world_x, &world_y);
+                let (chunk_cord_x, chunk_cord_y) =
+                    conversion::get_chunk_world_cords(&world_x, &world_y);
 
                 let rel_world_x = (self.x - chunk_cord_x) as f32;
                 let rel_world_y = (self.y - chunk_cord_y) as f32;
@@ -122,26 +124,46 @@ impl Camera {
     fn draw_chunk_mesh(&self, chunk_mesh: &ChunkMesh, rel_world_x: f32, rel_world_y: f32) {
         let center_x = window::screen_width() / 2.0;
         let center_y = window::screen_height() / 2.0;
-    
+
         for (block, rect) in chunk_mesh.mesh.iter() {
             // Flip x and y coordinates within the chunk
             let flipped_x = 16.0 - rect.x - rect.w;
             let flipped_y = 16.0 - rect.y - rect.h;
-    
+
             let screen_x = (rel_world_x + flipped_x) * self.zoom + center_x;
             let screen_y = (rel_world_y + flipped_y) * self.zoom + center_y;
-    
-            draw_rectangle(screen_x, screen_y, rect.w * self.zoom, rect.h * self.zoom, block.color());
-    
+
+            draw_rectangle(
+                screen_x,
+                screen_y,
+                rect.w * self.zoom,
+                rect.h * self.zoom,
+                block.color(),
+            );
+
             if block == &Block::WaterEdge {
-                draw_line(screen_x, screen_y, screen_x + rect.w * self.zoom, screen_y, self.zoom / 4.0, WHITE);
+                draw_line(
+                    screen_x,
+                    screen_y,
+                    screen_x + rect.w * self.zoom,
+                    screen_y,
+                    self.zoom / 4.0,
+                    WHITE,
+                );
             }
-    
+
             if self.flags & flags::DEBUG_QUAD > 0 {
-                draw_rectangle_lines(screen_x, screen_y, rect.w * self.zoom, rect.h * self.zoom, DEBUG_LINE_WIDTH, DEBUG_QUAD_COLOR);
+                draw_rectangle_lines(
+                    screen_x,
+                    screen_y,
+                    rect.w * self.zoom,
+                    rect.h * self.zoom,
+                    DEBUG_LINE_WIDTH,
+                    DEBUG_QUAD_COLOR,
+                );
             }
         }
-    
+
         if self.flags & flags::DEBUG_CHUNKS > 0 {
             draw_rectangle_lines(
                 rel_world_x * self.zoom + center_x,
@@ -153,7 +175,6 @@ impl Camera {
             );
         }
     }
-    
 
     fn draw_selected_block(&self) {
         let mouse_pos = mouse_position();
@@ -162,13 +183,27 @@ impl Camera {
         let screen_x = world_x * self.zoom + window::screen_width() / 2.0;
         let screen_y = world_y * self.zoom + window::screen_height() / 2.0;
 
-        draw_rectangle_lines(screen_x, screen_y, self.zoom, self.zoom, 6.0, SELECT_BOX_COLOR);
+        draw_rectangle_lines(
+            screen_x,
+            screen_y,
+            self.zoom,
+            self.zoom,
+            6.0,
+            SELECT_BOX_COLOR,
+        );
     }
 
     fn draw_background(&self) {
-        self.bg_mat.set_uniform("offset", (self.y as f32 / self.zoom) / 256.0);
+        self.bg_mat
+            .set_uniform("offset", (self.y as f32 / self.zoom) / 256.0);
         gl_use_material(&self.bg_mat);
-        draw_rectangle(0.0, 0.0, window::screen_width(), window::screen_height(), WHITE);
+        draw_rectangle(
+            0.0,
+            0.0,
+            window::screen_width(),
+            window::screen_height(),
+            WHITE,
+        );
         gl_use_default_material();
     }
 
@@ -195,7 +230,13 @@ impl Camera {
         const FONT_SIZE: f32 = 30.0;
         const LINE_SPACING: f32 = 5.0;
         for (i, line) in text.lines().enumerate() {
-            draw_text(line, PADDING, PADDING + (i as f32 + 1.0) * (FONT_SIZE + LINE_SPACING) / 2.0, FONT_SIZE, BLACK);
+            draw_text(
+                line,
+                PADDING,
+                PADDING + (i as f32 + 1.0) * (FONT_SIZE + LINE_SPACING) / 2.0,
+                FONT_SIZE,
+                BLACK,
+            );
         }
     }
 }
