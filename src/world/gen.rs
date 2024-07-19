@@ -12,8 +12,8 @@ pub trait Generator {
 
         let mut blocks = Vec::with_capacity(16 * 16 as usize);
         for i in 0..16 * 16 as usize {
-            let world_x = base_pos_x | (15 - i % 16) as i64;
-            let world_y = base_pos_y | (15 - i / 16) as i64;
+            let world_x = base_pos_x | (i % 16) as i64;
+            let world_y = base_pos_y | (i / 16) as i64;
             blocks.push(self.gen_block(&world_x, &world_y));
         }
         Chunk::new(blocks.try_into().unwrap())

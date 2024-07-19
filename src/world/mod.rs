@@ -76,16 +76,25 @@ impl Region {
     }
     pub fn get_block(&mut self, gen: &impl Generator, chunk_x: &u8, chunk_y: &u8, x: &u8, y: &u8) -> &Block {
         assert!(chunk_x < &16 && chunk_y < &16, "That is outside this region");
+        assert!(x < &16 && y < &16, "That is outside the chunk");
 
+        // Update last used timestamp for the region
         self.last_used = Local::now();
-        let index = (x + y * 16) as usize;
 
-        if self.chunks[index].is_none() {
-            let chunk = gen.gen_chunk(&self.region_x, &self.region_y, x, y);
-            self.chunks[index] = Some(chunk);
+        // Calculate the chunk index in the region
+        let chunk_index = (chunk_x + chunk_y * 16) as usize;
+
+        // Ensure the chunk exists
+        if self.chunks[chunk_index].is_none() {
+            let chunk = gen.gen_chunk(&self.region_x, &self.region_y, chunk_x, chunk_y);
+            self.chunks[chunk_index] = Some(chunk);
         }
-        self.chunks[index].as_mut().unwrap().last_used = Local::now();
-        &self.chunks[index].as_ref().unwrap().blocks[(x + 16 * y) as usize]
+
+        // Update the last used timestamp for the chunk
+        self.chunks[chunk_index].as_mut().unwrap().last_used = Local::now();
+
+        // Retrieve the block from the chunk
+        &self.chunks[chunk_index].as_ref().unwrap().blocks[(x + 16 * y) as usize]
     }
 }
 impl Region {

@@ -1,26 +1,13 @@
 use chrono::{Duration, Local};
-
 use crate::blocks::Block;
-
 use super::{ChunkMesh, Region, gen::WorldGenerator};
 use std::collections::HashMap;
 
-/// When trying to load a chunk here is the order of operations
-/// Check if we have it already loaded in region
-/// if the region doesn't contain it then we generate
-/// If it is within a different region that is not loaded load that region
-///
-
-/// Responsible for loading world, editing world, and saving it.
-/// It tracts objects usage and automatically unloads them if not in use
-/// It loads chunks when asked but it hides region functionality
 pub struct WorldManager {
-    // Object which contains world gen data
     gen: WorldGenerator,
-    // Hashmap of loaded regions
     regions: HashMap<(i32, i32), Region>,
 }
-/// These are the public functions open to other objects
+
 impl WorldManager {
     pub fn new(seed: u32) -> Self {
         Self {
@@ -28,6 +15,7 @@ impl WorldManager {
             regions: HashMap::new(),
         }
     }
+
     pub fn get_chunk_mesh(
         &mut self,
         region_x: &i32,
@@ -36,14 +24,13 @@ impl WorldManager {
         regional_chunk_y: &u8,
     ) -> &ChunkMesh {
         if !self.regions.contains_key(&(*region_x, *region_y)) {
-            self.regions
-                .insert((*region_x, *region_y), Region::load(region_x, region_y));
+            self.regions.insert((*region_x, *region_y), Region::load(region_x, region_y));
         }
 
         let region = self.regions.get_mut(&(*region_x, *region_y)).unwrap();
         region.get_chunk_mesh(&self.gen, regional_chunk_x, regional_chunk_y)
     }
-    /// Cleans out all regions that have not been used in a while
+
     pub fn clean(&mut self) {
         let now = Local::now();
         let keys_to_remove: Vec<_> = self
@@ -62,39 +49,39 @@ impl WorldManager {
             self.regions.remove(&key);
         }
     }
+
     pub fn get_region_count(&self) -> usize {
         self.regions.len()
     }
+
     pub fn get_block(&mut self, world_x: &i64, world_y: &i64) -> &Block {
         let (region_x, region_y) = conversion::get_region_cords(world_x, world_y);
         if !self.regions.contains_key(&(region_x, region_y)) {
-            self.regions
-                .insert((region_x, region_y), Region::load(&region_x, &region_y));
+            self.regions.insert((region_x, region_y), Region::load(&region_x, &region_y));
         }
         let (chunk_x, chunk_y) = conversion::get_region_chunk_cords(world_x, world_y);
-        let (x, y) = conversion::get_local_chunk_cords(world_x, world_y);
+        let (local_x, local_y) = conversion::get_local_chunk_cords(world_x, world_y);
         let region = self.regions.get_mut(&(region_x, region_y)).unwrap();
-        region.get_block(&self.gen, &chunk_x, &chunk_y, &x, &y)
+        region.get_block(&self.gen, &chunk_x, &chunk_y, &local_x, &local_y)
     }
 }
 
-/// Module which defines conversions between different coordinate systems
 pub mod conversion {
-    /// Returns the regional coordinates from world ones
     pub fn get_region_cords(world_x: &i64, world_y: &i64) -> (i32, i32) {
         ((world_x >> 8) as i32, (world_y >> 8) as i32)
     }
-    /// Returns the regional chunk coordinates from world ones
+
     pub fn get_region_chunk_cords(world_x: &i64, world_y: &i64) -> (u8, u8) {
         (
             ((world_x >> 4) & 0b1111) as u8,
             ((world_y >> 4) & 0b1111) as u8,
         )
     }
-    /// Gets the world cords of a chunks 0,0 block
+
     pub fn get_chunk_world_cords(world_x: &i64, world_y: &i64) -> (i64, i64) {
         (world_x & !0b1111, world_y & !0b1111)
     }
+
     pub fn get_local_chunk_cords(world_x: &i64, world_y: &i64) -> (u8, u8) {
         ((world_x & 0b1111) as u8, (world_y & 0b1111) as u8)
     }
