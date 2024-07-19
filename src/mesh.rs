@@ -1,6 +1,9 @@
 //! Module which defines meshing for the sand_engine
 use super::{blocks::Block, chunks::Chunk};
-use macroquad::{color::{Color, WHITE}, prelude::Rect};
+use macroquad::{
+    color::{Color, WHITE},
+    prelude::Rect,
+};
 
 /// Distinguishes culled meshes from greedy one
 pub enum MeshType {
@@ -54,27 +57,37 @@ impl ChunkMesh {
 
                     let rects = match block_type {
                         Block::WaterEdge => {
-                            vec![(block_type.color(), Rect {
+                            vec![
+                                (
+                                    block_type.color(),
+                                    Rect {
+                                        x: x as f32,
+                                        y: y as f32,
+                                        w: w as f32,
+                                        h: h as f32 - 0.3,
+                                    },
+                                ),
+                                (
+                                    WHITE,
+                                    Rect {
+                                        x: x as f32,
+                                        y: y as f32 + 0.6,
+                                        w: w as f32,
+                                        h: 0.2,
+                                    },
+                                ),
+                            ]
+                        }
+                        _ => vec![(
+                            block_type.color(),
+                            Rect {
                                 x: x as f32,
                                 y: y as f32,
                                 w: w as f32,
-                                h: h as f32 - 0.3,
-                            }),
-                            (WHITE, Rect {
-                                x: x as f32,
-                                y: y as f32 + 0.6,
-                                w: w as f32,
-                                h: 0.2,
-                            })]
-                        },
-                        _ => vec![(block_type.color(), Rect {
-                            x: x as f32,
-                            y: y as f32,
-                            w: w as f32,
-                            h: h as f32,
-                        })]
+                                h: h as f32,
+                            },
+                        )],
                     };
-                   
 
                     mesh.extend(rects);
 

@@ -1,19 +1,19 @@
 //! Defines a camera to view the world
 
-use super::{blocks::Block, ChunkMesh};
+use super::ChunkMesh;
 use crate::{conversion, WorldManager};
 use macroquad::{
     prelude::{
-        draw_line, draw_rectangle, draw_rectangle_lines, draw_text, get_fps,
-        gl_use_default_material, gl_use_material, load_material, mouse_position, Color, Material,
-        MaterialParams, ShaderSource, UniformType, BLACK, BLUE, PINK, RED, WHITE,
+        draw_rectangle, draw_rectangle_lines, draw_text, get_fps, gl_use_default_material,
+        gl_use_material, load_material, mouse_position, Color, Material, MaterialParams,
+        ShaderSource, UniformType, BLACK, BLUE, PINK, RED, WHITE,
     },
     window,
 };
 
 pub mod flags {
     pub const DEBUG_CHUNKS: u8 = 1 << 0;
-    pub const DEBUG_QUAD: u8 = 1 << 1;
+    pub const DEBUG_QUADS: u8 = 1 << 1;
     pub const DRAW_SELECTION_BOX: u8 = 1 << 2;
     pub const DEBUG_MENU: u8 = 1 << 3;
     pub const CLAMP_ZOOM: u8 = 1 << 4;
@@ -141,7 +141,7 @@ impl Camera {
                 *color,
             );
 
-            if self.flags & flags::DEBUG_QUAD > 0 {
+            if self.flags & flags::DEBUG_QUADS > 0 {
                 draw_rectangle_lines(
                     screen_x,
                     screen_y,
