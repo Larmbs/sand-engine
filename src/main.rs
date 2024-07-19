@@ -9,7 +9,7 @@ async fn main() {
 
     let mut camera = Camera::new(flags::DEBUG_MENU | flags::DRAW_SELECTION_BOX | flags::CLAMP_ZOOM);
     let mut manager = WorldManager::new(seed);
-    let mut controller = PlayerController::new(0, 0);
+    let mut controller = InspectController::new(0, 0);
     loop {
         camera.draw(&mut manager);
         controller.update(&mut camera, &mut manager);

@@ -2,7 +2,7 @@ use chrono::{Duration, Local};
 
 use crate::blocks::Block;
 
-use super::{ChunkMesh, Region, WorldGenerator};
+use super::{ChunkMesh, Region, gen::WorldGenerator};
 use std::collections::HashMap;
 
 /// When trying to load a chunk here is the order of operations

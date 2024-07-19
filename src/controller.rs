@@ -26,7 +26,7 @@ impl InspectController {
     }
 }
 impl Controller for InspectController {
-    fn update(&mut self, camera: &mut Camera, manager: &mut WorldManager) {
+    fn update(&mut self, camera: &mut Camera, _manager: &mut WorldManager) {
         let mut move_speed = 1;
         if is_key_down(KeyCode::LeftShift) {
             move_speed = 5;
@@ -60,10 +60,6 @@ struct FixedPoint {
     pub small: f32,
 }
 impl FixedPoint {
-    fn new(large: i64, small: f32) -> Self {
-        assert!(small >= 0.0 && small < 1.0, "Small coordinate must be between 0 and 1.");
-        FixedPoint { large, small }
-    }
     fn move_by(&mut self, delta: f32) {
         let total_delta = (self.small + delta) as f64;
         let large_delta = total_delta.floor() as i64;
@@ -101,10 +97,14 @@ impl Controller for PlayerController {
         }
         
         if is_key_down(KeyCode::A) {
-            self.x.move_by(-0.5);
+            if !manager.get_block(&(self.x.large + 1), &self.y.large).is_solid() {
+                self.x.move_by(0.5);
+            }
         }
         if is_key_down(KeyCode::D) {
-            self.x.move_by(0.5);
+            if !manager.get_block(&(self.x.large - 1), &self.y.large).is_solid() {
+                self.x.move_by(-0.5);
+            }
         }
         if is_key_down(KeyCode::Z) {
             self.zoom *= 0.9;

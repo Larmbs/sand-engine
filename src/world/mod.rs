@@ -2,8 +2,11 @@ pub mod blocks;
 pub mod chunks;
 use blocks::Block;
 use chunks::Chunk;
+pub mod gen;
+use gen::Generator;
 
-use super::{ChunkMesh, Generator};
+
+use super::ChunkMesh;
 use anyhow::Result;
 use chrono::{DateTime, Local};
 

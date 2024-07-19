@@ -44,8 +44,8 @@ impl Camera {
     pub fn new(flags: Flags) -> Self {
         let material = load_material(
             ShaderSource::Glsl {
-                vertex: include_str!("../shaders/gradient_vertex_shader.glsl"),
-                fragment: include_str!("../shaders/gradient_fragment_shader.glsl"),
+                vertex: include_str!("../assets/shaders/gradient_bg_vertex_shader.glsl"),
+                fragment: include_str!("../assets/shaders/gradient_bg_fragment_shader.glsl"),
             },
             MaterialParams {
                 uniforms: vec![("offset".to_string(), UniformType::Float1)],
