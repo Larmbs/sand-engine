@@ -11,6 +11,7 @@ use macroquad::{
     window,
 };
 
+/// Module which contains camera configuration flags
 pub mod flags {
     pub const DEBUG_CHUNKS: u8 = 1 << 0;
     pub const DEBUG_QUADS: u8 = 1 << 1;
@@ -200,7 +201,7 @@ impl Camera {
         let (mouse_x, mouse_y) = mouse_position();
         let (cursor_x, cursor_y) = self.screen_to_world_cord(mouse_x, mouse_y);
         let regions = manager.get_region_count();
-        let block = manager.get_block(&-cursor_x, &cursor_y);
+        let block = manager.get_block(&(cursor_x + 15), &(cursor_y + 15));
 
         let text = format!(
             "FPS: {}\nRegions Loaded: {}\nChunks Drawn: {}\nZoom Level: {}\nCamera X: {}\nCamera Y: {}\nCursor X: {}\nCursor Y: {}\nBlock: {:?}",

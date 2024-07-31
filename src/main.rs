@@ -8,7 +8,7 @@ async fn main() {
     let seed = rand::thread_rng().gen_range(0..u32::MAX);
 
     let mut camera = Camera::new(
-        flags::DEBUG_MENU | flags::DRAW_SELECTION_BOX | flags::CLAMP_ZOOM,
+        flags::DEBUG_MENU | flags::DRAW_SELECTION_BOX | flags::CLAMP_ZOOM | flags::DEBUG_CHUNKS |flags::DEBUG_QUADS,
     );
     let mut manager = WorldManager::new(seed);
     let mut controller = InspectController::new(0, 0);
